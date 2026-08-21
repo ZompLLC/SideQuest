@@ -1,16 +1,11 @@
-const fastify = require('fastify')({ logger: true });
+const express = require('express');
 
-fastify.get('/status', async (request, reply) => {
-  reply.code(200).send({ status: 'ok' });
+const app = express();
+
+app.get('/status', (req, res) => {
+  res.status(200).json({ status: 'ok' });
 });
 
-const start = async () => {
-  try {
-    await fastify.listen({ port: 3000 });
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
-  }
-};
-
-start();
+app.listen(3000, () => {
+  console.log('Server listening at http://localhost:3000');
+});
