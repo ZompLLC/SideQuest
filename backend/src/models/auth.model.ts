@@ -1,32 +1,27 @@
-export interface RegisterRequestModel {
-  email: string;
-  username: string;
-  password: string;
-}
-
-export interface RegisterResponseModel {
+// Core User entity representing the database structure
+export type UserModel = {
   id: string;
   email: string;
   username: string;
+  password?: string;
   createdAt: string;
-}
+};
 
-export interface LoginRequestModel {
-  email: string;
-  password: string;
-}
+// Request Payloads
+export type RegisterRequestModel = Required<
+  Pick<UserModel, "email" | "username" | "password">
+>;
 
-export interface LoginResponseModel {
+export type LoginRequestModel = Required<Pick<UserModel, "email" | "password">>;
+
+// Response Payloads
+export type RegisterResponseModel = Omit<UserModel, "password">;
+
+export type LoginResponseModel = {
   message: string;
   accessToken: string;
-  user: {
-    id: string;
-    username: string;
-  };
-}
+  user: AuthenticatedUserModel;
+};
 
-// Attached to req by the requireAuth middleware once a bearer token is verified.
-export interface AuthenticatedUserModel {
-  id: string;
-  username: string;
-}
+// Middleware & Session Payload
+export type AuthenticatedUserModel = Pick<UserModel, "id" | "username">;
