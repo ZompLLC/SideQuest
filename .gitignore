@@ -7,3 +7,6 @@ web-build/
 ios/
 android/
 scripts/
+
+.env.development
+.env.production
