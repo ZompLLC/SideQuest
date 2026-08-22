@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import { checkDbConnection } from "./db.js";
-import { attachRequestLogger, logger, requestLogger } from "./src/logger.js";
+import { accessLogger, logger, requestLogger } from "./src/logger.js";
 import { authRouter } from "./src/routes/auth.routes.js";
 
 // load environment vars
@@ -12,8 +12,8 @@ dotenv.config({ path: envFile });
 const app = express();
 
 app.use(express.json());
-app.use(attachRequestLogger);
 app.use(requestLogger);
+app.use(accessLogger);
 
 app.get("/status", (req: Request, res: Response) => {
   res.status(200).json({ status: "ok" });
