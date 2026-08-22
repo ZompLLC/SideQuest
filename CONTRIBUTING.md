@@ -68,7 +68,9 @@ The backend lives in `backend/` and talks to a local Postgres database, so that 
 
 Pick whichever you're most comfortable with:
 
-- **[Postgres.app](https://postgresapp.com/)** (Mac, easiest to get going): download it, open it, and click **Initialize** to create a default server. It listens on port `5432` and auto-creates a role + database matching your Mac username, no password required.
+**Mac**
+
+- **[Postgres.app](https://postgresapp.com/)** (easiest to get going): download it, open it, and click **Initialize** to create a default server. It listens on port `5432` and auto-creates a role + database matching your Mac username, no password required.
 
   To use `psql` and other CLI tools from the terminal, click the elephant icon in the menu bar → **Command Line Tools...** and follow the prompt. This adds Postgres.app's `bin` directory to your `PATH`.
 
@@ -89,7 +91,29 @@ Pick whichever you're most comfortable with:
   brew services start postgresql@16
   ```
 
-- **Docker**: if you'd rather not install Postgres directly on your machine.
+**Windows**
+
+- **[Native installer](https://www.postgresql.org/download/windows/)** (the EDB installer, easiest if you don't want WSL): download and run it. It installs Postgres as a Windows Service (starts automatically on boot/login — check **Services** in the Start menu if you need to start/stop/restart it manually) and includes `psql`/`createdb` plus the pgAdmin GUI. During setup you'll set a password for the default `postgres` user — remember it, you'll need it for `.env.development` below.
+
+  Add `psql` to your PATH if the installer didn't (Command Prompt/PowerShell):
+
+  ```powershell
+  setx PATH "%PATH%;C:\Program Files\PostgreSQL\<version>\bin"
+  ```
+
+  (open a new terminal window afterward for it to take effect)
+
+- **[WSL2](https://learn.microsoft.com/windows/wsl/install)**, if you'd rather work in a Linux environment: once inside your WSL2 distro, follow the Linux instructions for your distro's package manager, e.g. on Ubuntu/Debian:
+
+  ```bash
+  sudo apt update
+  sudo apt install postgresql postgresql-contrib
+  sudo service postgresql start
+  ```
+
+**Any OS — Docker**
+
+- If you'd rather not install Postgres directly on your machine (works the same on Mac, Windows, and Linux — requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) on Mac/Windows):
 
   ```bash
   docker run --name chud-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
@@ -100,6 +124,8 @@ Once your server is running, create a database for the project (skip this if you
 ```bash
 createdb chud_chud_chud_sahur
 ```
+
+(on Windows with the native installer, run this from a terminal where `psql`'s `bin` directory is on `PATH`, or use pgAdmin's GUI to create a database instead)
 
 #### Running the Backend Server
 
@@ -116,14 +142,18 @@ Copy the example environment file and fill in your local Postgres connection det
 cp .env.development.example .env.development
 ```
 
+(on Windows Command Prompt, use `copy .env.development.example .env.development` instead — `cp` works as-is in PowerShell, WSL, or Git Bash)
+
 ```
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
 DATABASE_NAME=<your database name>
 DATABASE_USER=<your postgres user>
 DATABASE_PASSWORD=<your postgres password, blank if none>
-DATABASE_URL=postgresql://<user>@localhost:5432/<database name>
+DATABASE_URL=postgresql://<user>:<password>@localhost:5432/<database name>
 ```
+
+(leave out the `:<password>` part of `DATABASE_URL` entirely if you don't have one set, e.g. `postgresql://<user>@localhost:5432/<database name>` — this is the common case on Mac with Postgres.app/Homebrew, but Windows installs typically do have a password)
 
 Run the database migrations to create the schema (this only needs to be re-run when new migrations are added):
 
