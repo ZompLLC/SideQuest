@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
+import { checkDbConnection } from "./db.js";
 import { authRouter } from "./src/routes/auth.routes.js";
 
 // load environment vars
@@ -17,7 +18,14 @@ app.get("/status", (req: Request, res: Response) => {
 
 app.use(authRouter);
 
-app.listen(3000, () => {
-  console.log("Server listening at http://localhost:3000");
-  console.log(`Target environment: ${deployEnv}`);
-});
+checkDbConnection()
+  .then(() => {
+    app.listen(3000, () => {
+      console.log("Server listening at http://localhost:3000");
+      console.log(`Target environment: ${deployEnv}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Failed to connect to the database:", err);
+    process.exit(1);
+  });
