@@ -97,7 +97,6 @@ git pull --rebase origin main
 git push origin feature/short-description
 ```
 
-
 ### Open a Pull Request
 
 1. Go to the repository on GitHub.
@@ -108,6 +107,16 @@ git push origin feature/short-description
    - **Description**: what the change does, why it's needed, and any context reviewers should know (linked issues, screenshots, testing notes, etc.).
 5. Click **Create pull request**.
 6. If any changes need to be made, you can commit to the feature branch and the pull request will update directly.
+
+### Cleaning Up
+
+After the pull request is merged into main, clean up your changes and delete your local branch.
+
+```bash
+git checkout main
+git pull origin main
+git branch -d feature/short-description
+```
 
 ---
 
