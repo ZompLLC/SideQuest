@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "ZompLLC Frontend",
+    "slug": "triple-c-s",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": { "backgroundColor": "#111827" },
+    "assetBundlePatterns": ["**/*"],
+    "ios": { "supportsTablet": true },
+    "android": { "adaptiveIcon": { "backgroundColor": "#111827" } },
+    "web": { "bundler": "metro" }
+  }
+}
