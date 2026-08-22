@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { ApiError, sendError } from "../errors.js";
-import { verifyAccessToken } from "../lib/sessionToken.js";
 import { AuthenticatedUserModel } from "../models/auth.model.js";
 
 declare global {
@@ -35,20 +34,7 @@ export function requireAuth(
     return;
   }
 
-  const result = verifyAccessToken(token);
-  if (!result.ok) {
-    sendError(
-      res,
-      new ApiError(
-        401,
-        "UNAUTHORIZED",
-        "You must be logged in to perform this action.",
-      ),
-    );
-    return;
-  }
-
-  // TODO: look up the user's profile (username, etc.) by result.userId (Postgres).
-  req.user = { id: result.userId, username: "TODO" };
+  // TODO: verify the token for real and look up the user.
+  req.user = { id: "TODO", username: "TODO" };
   next();
 }
