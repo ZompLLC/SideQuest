@@ -8,5 +8,6 @@ ios/
 android/
 scripts/
 
+.env
 .env.development
 .env.production
