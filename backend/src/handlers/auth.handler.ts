@@ -17,7 +17,10 @@ export async function register(
 ): Promise<void> {
   const { email, username, password } = req.body;
 
+  req.log.info("register: request received", { email });
+
   if (!email || !username || !password) {
+    req.log.warn("register: validation failed, missing required fields");
     sendError(
       res,
       new ApiError(
@@ -29,6 +32,7 @@ export async function register(
     return;
   }
   if (password.length < 8) {
+    req.log.warn("register: validation failed, password too short", { email });
     sendError(
       res,
       new ApiError(
@@ -46,13 +50,15 @@ export async function register(
 
   try {
     const user = await createUser(userId, email, username, passwordHash);
+    req.log.info("register: user created successfully", { userId, email });
     res.status(201).json(user);
   } catch (err) {
     if (err instanceof DuplicateUserError) {
+      req.log.warn("register: duplicate user", { email });
       sendError(res, new ApiError(409, "EMAIL_ALREADY_EXISTS", err.message));
       return;
     }
-    console.error("Failed to create user:", err);
+    req.log.error("register: failed to create user", { err });
     sendError(
       res,
       new ApiError(
@@ -71,7 +77,10 @@ export async function login(
 ): Promise<void> {
   const { email, password } = req.body;
 
+  req.log.info("login: request received", { email });
+
   if (!email || !password) {
+    req.log.warn("login: validation failed, missing email or password");
     sendError(
       res,
       new ApiError(400, "VALIDATION_ERROR", "Email and password are required."),
@@ -83,7 +92,7 @@ export async function login(
   try {
     user = await findUserByEmail(email);
   } catch (err) {
-    console.error("Failed to look up user:", err);
+    req.log.error("login: failed to look up user", { err });
     sendError(
       res,
       new ApiError(
@@ -96,6 +105,7 @@ export async function login(
   }
 
   if (!user) {
+    req.log.warn("login: failed, no user found", { email });
     sendError(
       res,
       new ApiError(
@@ -109,6 +119,7 @@ export async function login(
 
   const passwordMatches = await bcrypt.compare(password, user.passwordHash);
   if (!passwordMatches) {
+    req.log.warn("login: failed, incorrect password", { email });
     sendError(
       res,
       new ApiError(
@@ -119,6 +130,8 @@ export async function login(
     );
     return;
   }
+
+  req.log.info("login: user logged in successfully", { userId: user.id, email });
 
   res.status(200).json({
     message: "successfully logged in",
