@@ -5,12 +5,15 @@ Thanks for helping improve zomp-zomp-zomp! This guide covers setting up your dev
 ## Table of Contents
 
 1. [Prerequisites](#prerequisites)
-    - [Downloads](#downloads)
-    - [Project Setup](#project-setup)
-        - [Running on iOS Simulator](#running-on-the-ios-simulator-mac--xcode-26)
+   - [Downloads](#downloads)
+   - [Project Setup](#project-setup)
+     - [Running on iOS Simulator](#running-on-the-ios-simulator-mac--xcode-26)
+   - [Backend Setup](#backend-setup)
+     - [Setting Up Postgres Locally](#setting-up-postgres-locally)
+     - [Running the Backend Server](#running-the-backend-server)
 2. [Contribution Workflow](#contribution-workflow)
-    - [Pushing Changes](#pushing-changes)
-    - [Open Pull Request](#open-a-pull-request)
+   - [Pushing Changes](#pushing-changes)
+   - [Open Pull Request](#open-a-pull-request)
 
 ## Prerequisites
 
@@ -22,7 +25,6 @@ Thanks for helping improve zomp-zomp-zomp! This guide covers setting up your dev
 ### Project Setup
 
 [FINISH SETUP ONCE WE GET FULLY OPERATIONAL FRONTEND AND BACKEND]
-
 
 Install dependencies:
 
@@ -58,9 +60,95 @@ Scan the QR code with Expo Go, or press `i` / `a` / `w` to open the iOS simulato
 
    Equivalently, `npm run ios` does the same thing directly.
 
+### Backend Setup
+
+The backend lives in `backend/` and talks to a local Postgres database, so that needs to be running before you start the server.
+
+#### Setting Up Postgres Locally
+
+Pick whichever you're most comfortable with:
+
+- **[Postgres.app](https://postgresapp.com/)** (Mac, easiest to get going): download it, open it, and click **Initialize** to create a default server. It listens on port `5432` and auto-creates a role + database matching your Mac username, no password required.
+
+  To use `psql` and other CLI tools from the terminal, click the elephant icon in the menu bar → **Command Line Tools...** and follow the prompt. This adds Postgres.app's `bin` directory to your `PATH`.
+
+  Once installed, you can start/stop/check the server from the terminal instead of the app window:
+
+  ```bash
+  pg_ctl start -D "$HOME/Library/Application Support/Postgres/var-<version>" -l "$HOME/Library/Application Support/Postgres/var-<version>/server.log"
+  pg_ctl stop -D "$HOME/Library/Application Support/Postgres/var-<version>"
+  pg_ctl status -D "$HOME/Library/Application Support/Postgres/var-<version>"
+  ```
+
+  (replace `<version>` with whatever's under `~/Library/Application Support/Postgres/`, e.g. `var-18`)
+
+- **[Homebrew](https://brew.sh/)**: fully CLI-managed, runs in the background via `launchd`, no app required at all.
+
+  ```bash
+  brew install postgresql@16
+  brew services start postgresql@16
+  ```
+
+- **Docker**: if you'd rather not install Postgres directly on your machine.
+
+  ```bash
+  docker run --name chud-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
+  ```
+
+Once your server is running, create a database for the project (skip this if you're using Postgres.app's default database, which is named after your username):
+
+```bash
+createdb chud_chud_chud_sahur
+```
+
+#### Running the Backend Server
+
+Install dependencies:
+
+```bash
+cd backend
+npm install
+```
+
+Copy the example environment file and fill in your local Postgres connection details:
+
+```bash
+cp .env.development.example .env.development
+```
+
+```
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=<your database name>
+DATABASE_USER=<your postgres user>
+DATABASE_PASSWORD=<your postgres password, blank if none>
+DATABASE_URL=postgresql://<user>@localhost:5432/<database name>
+```
+
+Run the database migrations to create the schema (this only needs to be re-run when new migrations are added):
+
+```bash
+npm run migrate -- up
+```
+
+Start the dev server:
+
+```bash
+npm run dev
+```
+
+You should see `Server listening at http://localhost:3000`. Verify it's up:
+
+```bash
+curl http://localhost:3000/status
+```
+
+If the server fails to start with a database connection error, double check your `.env.development` values match your local Postgres setup and that the server is actually running (`pg_isready`).
+
 ## Contribution Workflow
 
 ### Pushing Changes
+
 Before starting new work, make sure your local `main` branch is up to date:
 
 ```bash
@@ -89,6 +177,7 @@ git commit -m "Add short, descriptive summary of the change"
 ```
 
 Push your branch to the remote repository.
+
 - If it's the first push of this branch, Git may show a suggested command with `-u` — use it so future pushes are simpler:
 - If new changes have been added to 'main' since you started your feature branh, you will need to _rebaes_ your changes. (you may have to resolve merge conflicts).
 
