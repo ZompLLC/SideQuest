@@ -21,7 +21,7 @@ export const logger = winston.createLogger({
 });
 
 // Auto-logs every request/response as a single slim line (method, url, statusCode).
-export const requestLogger = expressWinston.logger({
+export const accessLogger = expressWinston.logger({
   winstonInstance: logger,
   requestWhitelist: ["method", "url"],
   responseWhitelist: ["statusCode"],
@@ -33,7 +33,7 @@ export const requestLogger = expressWinston.logger({
 
 // Attaches a per-request child logger (req.log) tagged with a request id,
 // mirroring the req.log pattern the handlers already use.
-export function attachRequestLogger(
+export function requestLogger(
   req: Request,
   res: Response,
   next: NextFunction,
