@@ -5,7 +5,8 @@ export type ErrorCode =
   | "VALIDATION_ERROR"
   | "EMAIL_ALREADY_EXISTS"
   | "INVALID_CREDENTIALS"
-  | "UNAUTHORIZED";
+  | "UNAUTHORIZED"
+  | "INTERNAL_ERROR";
 
 export class ApiError extends Error {
   constructor(
