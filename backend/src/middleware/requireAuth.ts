@@ -1,7 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { ApiError, sendError } from "../errors.js";
+import { sendError } from "../errors.js";
 import jwt from "jsonwebtoken";
 import { getJwtSecret } from "../util/env.js";
+import { AuthErrors } from "../errors/auth.errors.js";
 
 const JWT_SECRET = getJwtSecret();
 
@@ -26,14 +27,7 @@ export function requireAuth(
     : undefined;
 
   if (!token) {
-    sendError(
-      res,
-      new ApiError(
-        401,
-        "UNAUTHORIZED",
-        "You must be logged in to perform this action.",
-      ),
-    );
+    sendError(res, AuthErrors.unauthorized());
     return;
   }
 
@@ -43,14 +37,7 @@ export function requireAuth(
     req.log.warn("requireAuth: authentication token has an invalid payload.", {
       payload,
     });
-    sendError(
-      res,
-      new ApiError(
-        401,
-        "UNAUTHORIZED",
-        "You must be logged in to perform this action.",
-      ),
-    );
+    sendError(res, AuthErrors.unauthorized());
     return;
   }
 
