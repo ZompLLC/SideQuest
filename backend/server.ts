@@ -3,6 +3,7 @@ import express, { Request, Response } from "express";
 import { checkDbConnection } from "./db.js";
 import { logger, requestLogger, winstonLogger } from "./src/logger.js";
 import { authRouter } from "./src/routes/auth.routes.js";
+import { groupRouter } from "./src/routes/group.routes.js";
 import { userRouter } from "./src/routes/user.routes.js";
 
 // load environment vars
@@ -19,6 +20,7 @@ app.get("/status", (req: Request, res: Response) => {
 });
 
 app.use(authRouter);
+app.use(groupRouter);
 app.use(userRouter);
 
 checkDbConnection()
