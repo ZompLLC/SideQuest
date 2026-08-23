@@ -1,6 +1,6 @@
-# hello-world-app
+# Sidequest
 
-A basic Hello World mobile app built with React Native + Expo (JavaScript), targeting iOS and Android.
+A mobile app built with React Native + Expo (JavaScript), targeting iOS and Android.
 
 ## Prerequisites
 
