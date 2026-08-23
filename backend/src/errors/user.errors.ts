@@ -1,4 +1,4 @@
-import { ApiError } from "../errors";
+import { ApiError } from "./errors";
 
 export const USER_ERROR_CODES = ["USER_NOT_FOUND", "USERNAME_TAKEN"] as const;
 

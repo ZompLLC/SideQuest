@@ -7,7 +7,7 @@ import {
   DuplicateUserError,
   findUserByEmail,
 } from "../../db.js";
-import { sendError } from "../errors.js";
+import { sendError } from "../errors/errors.js";
 import { AuthErrors } from "../errors/auth.errors";
 import { UserErrors } from "../errors/user.errors";
 import { CommonErrors, requireFields } from "../errors/common.errors";

@@ -1,5 +1,5 @@
 // common.error.ts
-import { ApiError } from "../errors";
+import { ApiError } from "./errors";
 
 export const COMMON_ERROR_CODES = [
   "VALIDATION_ERROR",
