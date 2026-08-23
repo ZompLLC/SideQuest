@@ -4,8 +4,13 @@ import {
   findUserById,
   updateUsername,
 } from "../../db.js";
-import { ApiError, sendError } from "../errors.js";
-import { UpdateUserRequestModel, UserStatsModel } from "../models/user.model.js";
+import { sendError } from "../errors.js";
+import { UserErrors } from "../errors/user.errors";
+import { CommonErrors } from "../errors/common.errors";
+import {
+  UpdateUserRequestModel,
+  UserStatsModel,
+} from "../models/user.model.js";
 
 // GET /users/:userId
 // NOTE: no auth for now -- userId comes straight from the URL.
@@ -22,20 +27,13 @@ export async function getUser(
     user = await findUserById(userId);
   } catch (err) {
     req.log.error("getUser: failed to look up user", { userId, err });
-    sendError(
-      res,
-      new ApiError(
-        500,
-        "INTERNAL_ERROR",
-        "Something went wrong. Please try again.",
-      ),
-    );
+    sendError(res, CommonErrors.internalError());
     return;
   }
 
   if (!user) {
     req.log.warn("getUser: no matching user", { userId });
-    sendError(res, new ApiError(404, "USER_NOT_FOUND", "No user found with that ID."));
+    sendError(res, UserErrors.userNotFound());
     return;
   }
 
@@ -57,9 +55,7 @@ export async function updateUser(
     req.log.warn("updateUser: validation failed, bad username", { userId });
     sendError(
       res,
-      new ApiError(
-        400,
-        "VALIDATION_ERROR",
+      CommonErrors.validationError(
         "Username must be between 3 and 20 characters.",
         { field: "username" },
       ),
@@ -71,10 +67,7 @@ export async function updateUser(
     const user = await updateUsername(userId, username);
     if (!user) {
       req.log.warn("updateUser: no matching user", { userId });
-      sendError(
-        res,
-        new ApiError(404, "USER_NOT_FOUND", "No user found with that ID."),
-      );
+      sendError(res, UserErrors.userNotFound());
       return;
     }
     req.log.info("updateUser: username updated successfully", { userId });
@@ -82,18 +75,12 @@ export async function updateUser(
   } catch (err) {
     if (err instanceof DuplicateUsernameError) {
       req.log.warn("updateUser: username taken", { userId, username });
-      sendError(res, new ApiError(409, "USERNAME_TAKEN", err.message));
+      sendError(res, UserErrors.usernameTaken(err.message));
       return;
     }
     req.log.error("updateUser: failed to update user", { userId, err });
-    sendError(
-      res,
-      new ApiError(
-        500,
-        "INTERNAL_ERROR",
-        "Something went wrong. Please try again.",
-      ),
-    );
+    sendError(res, CommonErrors.internalError());
+    return;
   }
 }
 
@@ -101,7 +88,10 @@ export async function updateUser(
 // NOTE: no auth for now -- userId comes straight from the URL. Also mocked --
 // there's no groups/challenges/seasons schema yet to compute real streaks,
 // completion rate, badges, or season history from.
-export function getUserStats(req: Request<{ userId: string }>, res: Response): void {
+export function getUserStats(
+  req: Request<{ userId: string }>,
+  res: Response,
+): void {
   const { userId } = req.params;
 
   req.log.info("getUserStats: request received (mocked)", { userId });

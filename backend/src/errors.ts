@@ -1,14 +1,26 @@
 import { Response } from "express";
+import { AuthErrorCode, AUTH_ERROR_CODES } from "./errors/auth.errors";
+import { CommonErrorCode, COMMON_ERROR_CODES } from "./errors/common.errors";
+import { GroupErrorCode, GROUP_ERROR_CODES } from "./errors/group.errors";
+import { USER_ERROR_CODES, UserErrorCode } from "./errors/user.errors";
 
-// error.code values used across the auth endpoints
 export type ErrorCode =
-  | "VALIDATION_ERROR"
-  | "EMAIL_ALREADY_EXISTS"
-  | "USERNAME_TAKEN"
-  | "USER_NOT_FOUND"
-  | "INVALID_PASSWORD"
-  | "UNAUTHORIZED"
-  | "INTERNAL_ERROR";
+  | AuthErrorCode
+  | CommonErrorCode
+  | GroupErrorCode
+  | UserErrorCode;
+
+export const ALL_ERROR_CODES = [
+  ...AUTH_ERROR_CODES,
+  ...COMMON_ERROR_CODES,
+  ...GROUP_ERROR_CODES,
+  ...USER_ERROR_CODES,
+] as const;
+
+// Runtime type guard — narrows `string` to `ErrorCode`
+export function isErrorCode(value: string): value is ErrorCode {
+  return (ALL_ERROR_CODES as readonly string[]).includes(value);
+}
 
 export class ApiError extends Error {
   constructor(
