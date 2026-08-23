@@ -2,7 +2,7 @@
 // Keeping these in one file means every layer agrees on what a
 // "Challenge" or "User" looks like.
 
-export type ChallengeStatus = 'active' | 'pending' | 'completed';
+export type ChallengeStatus = "active" | "pending" | "completed";
 
 export interface Challenge {
   id: string;
@@ -15,13 +15,13 @@ export interface Challenge {
 
 export interface User {
   id: string;
-  name: string;
+  username: string;
   email: string;
 }
 
 export interface LeaderboardEntry {
   userId: string;
-  name: string;
+  username: string;
   points: number;
 }
 
