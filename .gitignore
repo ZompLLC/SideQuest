@@ -7,6 +7,7 @@ web-build/
 ios/
 android/
 scripts/
+.vscode/
 
 .env
 .env.development
