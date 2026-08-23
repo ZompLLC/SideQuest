@@ -31,7 +31,7 @@ export default function GroupsScreen({ navigation }: Props) {
       {loading ? (
         <Text style={styles.loading}>Loading…</Text>
       ) : groups.length === 0 ? (
-        <Text style={styles.loading}>You're not in any groups yet.</Text>
+        <Text style={styles.loading}>You&apos;re not in any groups yet.</Text>
       ) : (
         <FlatList
           data={groups}

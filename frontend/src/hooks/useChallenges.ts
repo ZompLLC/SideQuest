@@ -13,18 +13,31 @@ export function useChallenges(): UseChallengesResult {
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-
-  const refetch = useCallback(() => {
-    setLoading(true);
-    getChallenges()
-      .then(setChallenges)
-      .catch(setError)
-      .finally(() => setLoading(false));
-  }, []);
+  const [refetchIndex, setRefetchIndex] = useState(0);
 
   useEffect(() => {
-    refetch();
-  }, [refetch]);
+    let ignore = false;
+    // Resets the loading flag for each new fetch (initial mount and refetch).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setLoading(true);
+    getChallenges()
+      .then((data) => {
+        if (!ignore) setChallenges(data);
+      })
+      .catch((err) => {
+        if (!ignore) setError(err);
+      })
+      .finally(() => {
+        if (!ignore) setLoading(false);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [refetchIndex]);
+
+  const refetch = useCallback(() => {
+    setRefetchIndex((i) => i + 1);
+  }, []);
 
   return { challenges, loading, error, refetch };
 }

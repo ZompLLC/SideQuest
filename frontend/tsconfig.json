@@ -4,10 +4,11 @@
     "types": ["node"],
     "strict": true,
     "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "paths": {
       "@/*": ["src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"]
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "**/tests/**", "**/*.test.ts", "**/*.test.tsx"]
 }
