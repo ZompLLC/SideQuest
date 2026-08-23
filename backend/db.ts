@@ -207,7 +207,7 @@ export async function addUserToGroup(userId: string, groupId: string) {
       [userId, groupId],
     );
     return result.rows.length;
-  } catch (err: any) {
+  } catch (err) {
     throw err;
   }
 }

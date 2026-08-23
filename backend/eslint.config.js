@@ -8,6 +8,7 @@ module.exports = tseslint.config(
   ...tseslint.configs.recommended,
   {
     rules: {
+      "@typescript-eslint/no-explicit-any": ["error"],
       "@typescript-eslint/no-unused-vars": [
         "warn",
         { argsIgnorePattern: "^_", ignoreRestSiblings: true },
