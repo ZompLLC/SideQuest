@@ -127,3 +127,144 @@ export async function updateUsername(
     throw err;
   }
 }
+
+export interface GroupRecord {
+  id: string;
+  name: string;
+  ownerId: string;
+  inviteCode: string;
+  memberCount: number;
+  seasonLength: number;
+  createdAt: string;
+}
+
+const GROUP_SELECT_COLUMNS = `
+  g.id,
+  g.name,
+  g.owner_id,
+  g.invite_code,
+  g.season_length,
+  g.created_at,
+  (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = g.id) AS member_count
+`;
+
+function mapGroupRow(row: any): GroupRecord {
+  return {
+    id: row.id,
+    name: row.name,
+    ownerId: row.owner_id,
+    inviteCode: row.invite_code,
+    memberCount: parseInt(row.member_count, 10),
+    seasonLength: row.season_length,
+    createdAt: row.created_at.toISOString(),
+  };
+}
+
+export async function createGroup(
+  id: string,
+  name: string,
+  ownerId: string,
+  inviteCode: string,
+  seasonLength: number,
+  createdAt: string,
+): Promise<GroupRecord> {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await client.query(
+      `INSERT INTO groups (id, name, owner_id, invite_code, season_length, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, name, owner_id, invite_code, season_length, created_at`,
+      [id, name, ownerId, inviteCode, seasonLength, createdAt],
+    );
+    await client.query(
+      `INSERT INTO group_members (group_id, user_id) VALUES ($1, $2)`,
+      [id, ownerId],
+    );
+    await client.query("COMMIT");
+    const row = result.rows[0];
+    return {
+      id: row.id,
+      name: row.name,
+      ownerId: row.owner_id,
+      inviteCode: row.invite_code,
+      memberCount: 1,
+      seasonLength: row.season_length,
+      createdAt: row.created_at.toISOString(),
+    };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+export async function findGroupById(
+  id: string,
+): Promise<GroupRecord | undefined> {
+  const result = await pool.query(
+    `SELECT ${GROUP_SELECT_COLUMNS} FROM groups g WHERE g.id = $1`,
+    [id],
+  );
+  const row = result.rows[0];
+  if (!row) {
+    return undefined;
+  }
+  return mapGroupRow(row);
+}
+
+export async function listGroupsForUser(
+  userId: string,
+): Promise<GroupRecord[]> {
+  const result = await pool.query(
+    `SELECT ${GROUP_SELECT_COLUMNS}
+     FROM groups g
+     JOIN group_members gm ON gm.group_id = g.id
+     WHERE gm.user_id = $1
+     ORDER BY g.created_at DESC`,
+    [userId],
+  );
+  return result.rows.map(mapGroupRow);
+}
+
+export interface UpdateGroupFields {
+  name?: string;
+  seasonLength?: number;
+}
+
+export async function updateGroup(
+  id: string,
+  fields: UpdateGroupFields,
+): Promise<GroupRecord | undefined> {
+  const setClauses: string[] = [];
+  const values: unknown[] = [id];
+
+  if (fields.name !== undefined) {
+    values.push(fields.name);
+    setClauses.push(`name = $${values.length}`);
+  }
+  if (fields.seasonLength !== undefined) {
+    values.push(fields.seasonLength);
+    setClauses.push(`season_length = $${values.length}`);
+  }
+
+  if (setClauses.length === 0) {
+    return findGroupById(id);
+  }
+
+  const result = await pool.query(
+    `UPDATE groups SET ${setClauses.join(", ")} WHERE id = $1
+     RETURNING id`,
+    values,
+  );
+  if (result.rowCount === 0) {
+    return undefined;
+  }
+  return findGroupById(id);
+}
+
+export async function deleteGroup(id: string): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM groups WHERE id = $1`, [id]);
+  return (result.rowCount ?? 0) > 0;
+}
