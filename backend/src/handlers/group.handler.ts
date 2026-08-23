@@ -25,7 +25,7 @@ function generateInviteCode(): string {
 
 // POST /groups
 export async function createGroup(
-  req: Request<{}, {}, CreateGroupRequestModel>,
+  req: Request<Record<string, never>, CreateGroupResponseModel, CreateGroupRequestModel>,
   res: Response<CreateGroupResponseModel>,
 ): Promise<void> {
   const { name } = req.body;
@@ -99,7 +99,7 @@ export async function getGroup(
 
 // PATCH /groups/:groupId
 export async function updateGroup(
-  req: Request<{ groupId: string }, {}, UpdateGroupRequesteModel>,
+  req: Request<{ groupId: string }, UpdateGroupResponseModel, UpdateGroupRequesteModel>,
   res: Response<UpdateGroupResponseModel>,
 ): Promise<void> {
   const { groupId } = req.params;

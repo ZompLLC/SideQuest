@@ -25,7 +25,7 @@ const PASSWORD_SALT_ROUNDS = 10;
 
 // POST /register
 export async function register(
-  req: Request<{}, {}, RegisterRequestModel>,
+  req: Request<Record<string, never>, RegisterResponseModel, RegisterRequestModel>,
   res: Response<RegisterResponseModel>,
 ): Promise<void> {
   const { email, username, password } = req.body;
@@ -79,7 +79,7 @@ export async function register(
 
 // POST /login
 export async function login(
-  req: Request<{}, {}, LoginRequestModel>,
+  req: Request<Record<string, never>, LoginResponseModel, LoginRequestModel>,
   res: Response<LoginResponseModel>,
 ): Promise<void> {
   const { email, password } = req.body;
