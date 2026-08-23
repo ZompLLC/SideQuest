@@ -143,10 +143,10 @@ export async function login(
   });
 }
 
-// POST /logout (requireAuth)
+// POST /logout
 export function logout(req: Request, res: Response): void {
-  // ===== Still needs a real session store ========
-  // TODO: revoke the token tied to req.user's current session
+  // ===== Still needs a real session store and auth ========
+  // TODO: revoke the token tied to the current session
   // =====================================
   res.status(204).send();
 }
