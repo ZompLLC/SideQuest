@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+import "dotenv/config";
 import express, { Request, Response } from "express";
 import { checkDbConnection } from "./db.js";
 import { accessLogger, logger, requestLogger } from "./src/logger.js";
@@ -7,8 +7,6 @@ import { userRouter } from "./src/routes/user.routes.js";
 
 // load environment vars
 const deployEnv = process.env.NODE_ENV || "dev";
-const envFile = deployEnv === "prod" ? ".env.production" : ".env.development";
-dotenv.config({ path: envFile });
 
 const app = express();
 

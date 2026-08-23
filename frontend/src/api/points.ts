@@ -1,10 +1,10 @@
-import { LeaderboardEntry } from '../types';
+import { LeaderboardEntry } from "../types";
 
 const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-  { userId: 'u1', name: 'Alex', points: 340 },
-  { userId: 'u2', name: 'Jordan', points: 280 },
-  { userId: 'u3', name: 'You', points: 190 },
-  { userId: 'u4', name: 'Sam', points: 150 },
+  { userId: "u1", username: "Alex", points: 340 },
+  { userId: "u2", username: "Jordan", points: 280 },
+  { userId: "u3", username: "You", points: 190 },
+  { userId: "u4", username: "Sam", points: 150 },
 ];
 
 function fakeDelay(ms = 400): Promise<void> {
@@ -19,5 +19,5 @@ export async function getLeaderboard(): Promise<LeaderboardEntry[]> {
 
 export async function getMyPoints(): Promise<LeaderboardEntry | undefined> {
   await fakeDelay(200);
-  return MOCK_LEADERBOARD.find((u) => u.userId === 'u3');
+  return MOCK_LEADERBOARD.find((u) => u.userId === "u3");
 }

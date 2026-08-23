@@ -1,6 +1,10 @@
-import { useState } from 'react';
-import { login as apiLogin, signup as apiSignup, logout as apiLogout } from '../api/auth';
-import { useAuthStore } from '../store/authStore';
+import { useState } from "react";
+import {
+  login as apiLogin,
+  signup as apiSignup,
+  logout as apiLogout,
+} from "../api/auth";
+import { useAuthStore } from "../store/authStore";
 
 interface UseAuthResult {
   login: (email: string, password: string) => Promise<void>;
@@ -26,20 +30,20 @@ export function useAuth(): UseAuthResult {
       const user = await apiLogin(email, password);
       setUser(user);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
+      setError(err instanceof Error ? err.message : "Login failed");
     } finally {
       setLoading(false);
     }
   }
 
-  async function signup(name: string, email: string, password: string) {
+  async function signup(username: string, email: string, password: string) {
     setLoading(true);
     setError(null);
     try {
-      const user = await apiSignup(name, email, password);
+      const user = await apiSignup(username, email, password);
       setUser(user);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Signup failed');
+      setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
       setLoading(false);
     }
