@@ -11,12 +11,22 @@ export interface Challenge {
   opponent: string;
   points: number;
   status: ChallengeStatus;
+  groupId: string;
 }
 
 export interface User {
   id: string;
   username: string;
   email: string;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  ownerId: string;
+  inviteCode: string;
+  memberCount: number;
+  seasonLength: number;
 }
 
 export interface LeaderboardEntry {
@@ -42,7 +52,13 @@ export type ChallengesStackParamList = {
 
 export type MainTabParamList = {
   Home: undefined;
-  Challenges: undefined;
+  Groups: undefined;
   Leaderboard: undefined;
   Profile: undefined;
+};
+
+export type GroupsStackParamList = {
+  GroupsList: undefined;
+  GroupDetail: { id: string; openChallengeId?: string };
+  ChallengeDetail: { id: string };
 };
