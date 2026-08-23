@@ -15,6 +15,7 @@ export async function checkDbConnection(): Promise<void> {
 }
 
 export class DuplicateUserError extends Error {}
+export class DuplicateUsernameError extends Error {}
 
 export interface UserRecord {
   id: string;
@@ -75,4 +76,51 @@ export async function findUserByEmail(
     username: row.username,
     passwordHash: row.password_hash,
   };
+}
+
+export async function findUserById(
+  id: string,
+): Promise<UserRecord | undefined> {
+  const result = await pool.query(
+    `SELECT id, email, username, created_at FROM users WHERE id = $1`,
+    [id],
+  );
+  const row = result.rows[0];
+  if (!row) {
+    return undefined;
+  }
+  return {
+    id: row.id,
+    email: row.email,
+    username: row.username,
+    createdAt: row.created_at.toISOString(),
+  };
+}
+
+export async function updateUsername(
+  id: string,
+  username: string,
+): Promise<UserRecord | undefined> {
+  try {
+    const result = await pool.query(
+      `UPDATE users SET username = $2 WHERE id = $1
+       RETURNING id, email, username, created_at`,
+      [id, username],
+    );
+    const row = result.rows[0];
+    if (!row) {
+      return undefined;
+    }
+    return {
+      id: row.id,
+      email: row.email,
+      username: row.username,
+      createdAt: row.created_at.toISOString(),
+    };
+  } catch (err: any) {
+    if (err.code === "23505") {
+      throw new DuplicateUsernameError("That username is already in use.");
+    }
+    throw err;
+  }
 }

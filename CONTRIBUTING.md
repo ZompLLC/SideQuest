@@ -116,13 +116,13 @@ Pick whichever you're most comfortable with:
 - If you'd rather not install Postgres directly on your machine (works the same on Mac, Windows, and Linux — requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) on Mac/Windows):
 
   ```bash
-  docker run --name chud-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
+  docker run --name sidequest-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
   ```
 
 Once your server is running, create a database for the project (skip this if you're using Postgres.app's default database, which is named after your username):
 
 ```bash
-createdb chud_chud_chud_sahur
+createdb sidequest
 ```
 
 (on Windows with the native installer, run this from a terminal where `psql`'s `bin` directory is on `PATH`, or use pgAdmin's GUI to create a database instead)

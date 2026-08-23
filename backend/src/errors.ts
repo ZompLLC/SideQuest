@@ -4,6 +4,8 @@ import { Response } from "express";
 export type ErrorCode =
   | "VALIDATION_ERROR"
   | "EMAIL_ALREADY_EXISTS"
+  | "USERNAME_TAKEN"
+  | "USER_NOT_FOUND"
   | "INVALID_CREDENTIALS"
   | "UNAUTHORIZED"
   | "INTERNAL_ERROR";
