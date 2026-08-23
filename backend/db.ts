@@ -184,7 +184,6 @@ export async function createGroup(
        RETURNING id, name, owner_id, invite_code, season_length, created_at`,
       [id, name, ownerId, inviteCode, seasonLength],
     );
-    //TODO add user into usergroups
     const row = result.rows[0];
     return {
       id: row.id,
@@ -196,6 +195,19 @@ export async function createGroup(
       createdAt: row.created_at.toISOString(),
     };
   } catch (err) {
+    throw err;
+  }
+}
+
+export async function addUserToGroup(userId: string, groupId: string) {
+  try {
+    const result = await pool.query(
+      `INSERT INTO users_groups (user_id, group_id)
+       VALUES ($1, $2)`,
+      [userId, groupId],
+    );
+    return result.rows.length;
+  } catch (err: any) {
     throw err;
   }
 }

@@ -1,9 +1,10 @@
 import { Router } from "express";
 import * as groupHandler from "../handlers/group.handler.js";
+import { requireAuth } from "../middleware/requireAuth.js";
 
 export const groupRouter = Router();
 
-groupRouter.post("/groups", groupHandler.createGroup);
+groupRouter.post("/groups", requireAuth, groupHandler.createGroup);
 //groupRouter.get("/groups", groupHandler.listGroups);
 groupRouter.get("/groups/:groupId", groupHandler.getGroup);
 groupRouter.patch("/groups/:groupId", groupHandler.updateGroup);
