@@ -9,8 +9,8 @@
     "start": "node dist/server.js",
     "migrate": "dotenv -e .env.development -- node-pg-migrate",
     "lint": "eslint .",
-    "pretest": "dotenv -e .env.test -- node-pg-migrate up",
-    "test": "dotenv -e .env.test -- jest"
+    "pretest": "dotenv -e .env.development -- node-pg-migrate up",
+    "test": "dotenv -e .env.development -- jest"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
