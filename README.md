@@ -1,4 +1,4 @@
-# Sidequest
+# SideQuest
 
 A mobile app built with React Native + Expo (JavaScript), targeting iOS and Android.
 
