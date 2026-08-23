@@ -14,12 +14,14 @@
     "dotenv": "^17.4.2",
     "express": "^4.21.0",
     "express-winston": "^4.2.0",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",
     "winston": "^3.19.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.2.0",
     "@types/pg": "^8.23.1",
     "dotenv-cli": "^11.0.0",

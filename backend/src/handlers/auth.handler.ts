@@ -17,7 +17,10 @@ import {
   RegisterRequestModel,
   RegisterResponseModel,
 } from "../models/auth.model.js";
+import jwt from "jsonwebtoken";
+import { getJwtSecret } from "../util/env.js";
 
+const JWT_SECRET = getJwtSecret();
 const PASSWORD_SALT_ROUNDS = 10;
 
 // POST /register
@@ -52,7 +55,12 @@ export async function register(
   try {
     const user = await createUser(userId, email, username, passwordHash);
     req.log.info("register: user created successfully", { userId, email });
-    res.status(201).json(user);
+
+    const authToken = await jwt.sign({ userId }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.status(201).json({ ...user, authToken });
   } catch (err) {
     if (err instanceof DuplicateUsernameError) {
       req.log.warn("register: duplicate username", { username });
@@ -115,17 +123,12 @@ export async function login(
   res.status(200).json({
     message: "successfully logged in",
     accessToken: "TODO-access-token",
-    user: {
-      id: user.id,
-      username: user.username,
-    },
+    userId: user.id,
   });
 }
 
 // POST /logout
 export function logout(req: Request, res: Response): void {
-  // ===== Still needs a real session store and auth ========
-  // TODO: revoke the token tied to the current session
-  // =====================================
+  // jwt is deleted on the client side
   res.status(204).send();
 }

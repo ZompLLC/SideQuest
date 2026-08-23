@@ -21,7 +21,7 @@ export async function signup(
   username: string,
   email: string,
   password: string,
-): Promise<User> {
+): Promise<{ user: User; authToken: string }> {
   console.log(`Sending request for user registration: ${username}`);
   const res = await fetch(`http://${SERVER_URL}/register`, {
     method: "POST",
@@ -34,13 +34,26 @@ export async function signup(
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
   else {
-    const { username, email, id } = data;
+    const { username, email, id, authToken } = data;
+    const user = { username, email, id };
     console.log(`Registered user: ${username}`);
-    return { username, email, id };
+    return { user, authToken };
   }
 }
 
-export async function logout(): Promise<boolean> {
-  await fakeDelay(150);
-  return true;
+export async function logout(token: string): Promise<boolean> {
+  console.log("Sending logout request.");
+  const res = await fetch(`http://${SERVER_URL}/logout`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (res.ok) {
+    console.log("Logged out.");
+    return true;
+  } else {
+    const data = await res.json();
+    throw new Error(data.error.message);
+  }
 }
