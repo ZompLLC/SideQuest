@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { Request, Response } from "express";
 import { checkDbConnection } from "./db.js";
-import { accessLogger, logger, requestLogger } from "./src/logger.js";
+import { logger, requestLogger, winstonLogger } from "./src/logger.js";
 import { authRouter } from "./src/routes/auth.routes.js";
 import { userRouter } from "./src/routes/user.routes.js";
 
@@ -11,8 +11,8 @@ const deployEnv = process.env.NODE_ENV || "dev";
 const app = express();
 
 app.use(express.json());
+app.use(logger);
 app.use(requestLogger);
-app.use(accessLogger);
 
 app.get("/status", (req: Request, res: Response) => {
   res.status(200).json({ status: "ok" });
@@ -24,11 +24,11 @@ app.use(userRouter);
 checkDbConnection()
   .then(() => {
     app.listen(3000, () => {
-      logger.info("Server listening at http://localhost:3000");
-      logger.info(`Target environment: ${deployEnv}`);
+      winstonLogger.info("Server listening at http://localhost:3000");
+      winstonLogger.info(`Target environment: ${deployEnv}`);
     });
   })
   .catch((err) => {
-    logger.error("Failed to connect to the database", { err });
+    winstonLogger.error("Failed to connect to the database", { err });
     process.exit(1);
   });

@@ -5,7 +5,7 @@ import expressWinston from "express-winston";
 
 const isDev = (process.env.NODE_ENV || "dev") !== "prod";
 
-export const logger = winston.createLogger({
+export const winstonLogger = winston.createLogger({
   level: process.env.LOG_LEVEL || (isDev ? "debug" : "info"),
   format: isDev
     ? winston.format.combine(
@@ -21,8 +21,8 @@ export const logger = winston.createLogger({
 });
 
 // Auto-logs every request/response as a single slim line (method, url, statusCode).
-export const accessLogger = expressWinston.logger({
-  winstonInstance: logger,
+export const requestLogger = expressWinston.logger({
+  winstonInstance: winstonLogger,
   requestWhitelist: ["method", "url"],
   responseWhitelist: ["statusCode"],
   bodyBlacklist: ["password", "passwordHash"],
@@ -33,13 +33,13 @@ export const accessLogger = expressWinston.logger({
 
 // Attaches a per-request child logger (req.log) tagged with a request id,
 // mirroring the req.log pattern the handlers already use.
-export function requestLogger(
+export function logger(
   req: Request,
   res: Response,
   next: NextFunction,
 ): void {
   const reqId = randomUUID();
-  req.log = logger.child({ reqId });
+  req.log = winstonLogger.child({ reqId });
   next();
 }
 
