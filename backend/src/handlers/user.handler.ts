@@ -43,7 +43,7 @@ export async function getUser(
 // PATCH /users/:userId
 // NOTE: no auth for now -- userId comes straight from the URL.
 export async function updateUser(
-  req: Request<{ userId: string }, {}, UpdateUserRequestModel>,
+  req: Request<{ userId: string }, Record<string, never>, UpdateUserRequestModel>,
   res: Response,
 ): Promise<void> {
   const { userId } = req.params;

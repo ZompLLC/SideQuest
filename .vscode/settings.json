@@ -1,0 +1,7 @@
+{
+  "eslint.workingDirectories": [
+    { "directory": "backend" },
+    { "directory": "frontend" }
+  ],
+  "eslint.validate": ["javascript", "typescript", "typescriptreact"]
+}

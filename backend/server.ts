@@ -1,27 +1,10 @@
 import "dotenv/config";
-import express, { Request, Response } from "express";
 import { checkDbConnection } from "./db.js";
-import { logger, requestLogger, winstonLogger } from "./src/logger.js";
-import { authRouter } from "./src/routes/auth.routes.js";
-import { groupRouter } from "./src/routes/group.routes.js";
-import { userRouter } from "./src/routes/user.routes.js";
+import { winstonLogger } from "./src/logger.js";
+import { app } from "./src/app.js";
 
 // load environment vars
 const deployEnv = process.env.NODE_ENV || "dev";
-
-const app = express();
-
-app.use(express.json());
-app.use(logger);
-app.use(requestLogger);
-
-app.get("/status", (req: Request, res: Response) => {
-  res.status(200).json({ status: "ok" });
-});
-
-app.use(authRouter);
-app.use(groupRouter);
-app.use(userRouter);
 
 checkDbConnection()
   .then(() => {

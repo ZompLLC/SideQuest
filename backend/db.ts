@@ -1,4 +1,4 @@
-import { Pool } from "pg";
+import { DatabaseError, Pool } from "pg";
 
 export const pool = new Pool({
   host: process.env.DATABASE_HOST,
@@ -44,8 +44,8 @@ export async function createUser(
       username: row.username,
       createdAt: row.created_at.toISOString(),
     };
-  } catch (err: any) {
-    if (err.code === "23505") {
+  } catch (err) {
+    if (err instanceof DatabaseError && err.code === "23505") {
       if (err.constraint === "users_username_key") {
         throw new DuplicateUsernameError("That username is already taken.");
       }
@@ -120,8 +120,8 @@ export async function updateUsername(
       username: row.username,
       createdAt: row.created_at.toISOString(),
     };
-  } catch (err: any) {
-    if (err.code === "23505") {
+  } catch (err) {
+    if (err instanceof DatabaseError && err.code === "23505") {
       throw new DuplicateUsernameError("That username is already in use.");
     }
     throw err;
@@ -148,7 +148,17 @@ const GROUP_SELECT_COLUMNS = `
   g.created_at
 `;
 
-function mapGroupRow(row: any): GroupRecord {
+type RawGroupRow = {
+  id: string;
+  name: string;
+  owner_id: string;
+  invite_code: string;
+  member_count: string;
+  season_length: number;
+  created_at: Date;
+};
+
+function mapGroupRow(row: RawGroupRow): GroupRecord {
   return {
     id: row.id,
     name: row.name,
@@ -185,7 +195,7 @@ export async function createGroup(
       seasonLength: row.season_length,
       createdAt: row.created_at.toISOString(),
     };
-  } catch (err: any) {
+  } catch (err) {
     throw err;
   }
 }
