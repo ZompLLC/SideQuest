@@ -143,6 +143,7 @@ const GROUP_SELECT_COLUMNS = `
   g.name,
   g.owner_id,
   g.invite_code,
+  g.member_count,
   g.season_length,
   g.created_at
 `;
