@@ -46,8 +46,11 @@ export async function createUser(
     };
   } catch (err: any) {
     if (err.code === "23505") {
+      if (err.constraint === "users_username_key") {
+        throw new DuplicateUsernameError("That username is already taken.");
+      }
       throw new DuplicateUserError(
-        "An account with this email or username already exists.",
+        "An account with this email already exists.",
       );
     }
     throw err;
