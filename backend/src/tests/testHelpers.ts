@@ -11,9 +11,11 @@ export function createMockLogger() {
 
 export function createMockRequest<T extends Record<string, unknown>>(
   body: T,
+  params: Record<string, string> = {},
 ): Request {
   return {
     body,
+    params,
     log: createMockLogger(),
   } as unknown as Request;
 }
