@@ -1,4 +1,4 @@
-import { ApiError } from "../errors";
+import { ApiError } from "./errors";
 
 export const GROUP_ERROR_CODES = [
   "GROUP_NOT_FOUND",

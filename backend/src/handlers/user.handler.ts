@@ -4,7 +4,7 @@ import {
   findUserById,
   updateUsername,
 } from "../../db.js";
-import { sendError } from "../errors.js";
+import { sendError } from "../errors/errors.js";
 import { UserErrors } from "../errors/user.errors";
 import { CommonErrors } from "../errors/common.errors";
 import {

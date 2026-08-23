@@ -1,4 +1,4 @@
-import { ApiError } from "../errors";
+import { ApiError } from "./errors";
 
 export const AUTH_ERROR_CODES = [
   "EMAIL_ALREADY_EXISTS",

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { sendError } from "../errors.js";
+import { sendError } from "../errors/errors.js";
 import jwt from "jsonwebtoken";
 import { getJwtSecret } from "../util/env.js";
 import { AuthErrors } from "../errors/auth.errors.js";
