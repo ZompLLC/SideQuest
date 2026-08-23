@@ -6,7 +6,7 @@ import {
   updateGroup as dbUpdateGroup,
   deleteGroup as dbDeleteGroup,
 } from "../../db.js";
-import { sendError } from "../errors.js";
+import { sendError } from "../errors/errors.js";
 import { GroupErrors } from "../errors/group.errors";
 import { CommonErrors, requireFields } from "../errors/common.errors";
 import {

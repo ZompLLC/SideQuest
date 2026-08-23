@@ -1,8 +1,8 @@
 import { Response } from "express";
-import { AuthErrorCode, AUTH_ERROR_CODES } from "./errors/auth.errors";
-import { CommonErrorCode, COMMON_ERROR_CODES } from "./errors/common.errors";
-import { GroupErrorCode, GROUP_ERROR_CODES } from "./errors/group.errors";
-import { USER_ERROR_CODES, UserErrorCode } from "./errors/user.errors";
+import { AuthErrorCode, AUTH_ERROR_CODES } from "./auth.errors";
+import { CommonErrorCode, COMMON_ERROR_CODES } from "./common.errors";
+import { GroupErrorCode, GROUP_ERROR_CODES } from "./group.errors";
+import { USER_ERROR_CODES, UserErrorCode } from "./user.errors";
 
 export type ErrorCode =
   | AuthErrorCode

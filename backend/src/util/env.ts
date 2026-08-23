@@ -1,4 +1,4 @@
-import { ServerError } from "../errors";
+import { ServerError } from "../errors/errors";
 
 // Retrieves the value of an environment variable, throwing a ServerError if it is not set.
 function getAndRequireEnv(envVar: string): string {
