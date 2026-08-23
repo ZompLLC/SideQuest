@@ -191,7 +191,7 @@ export async function deleteGroup(
   try {
     await dbDeleteGroup(groupId);
     req.log.info("deleteGroup: group deleted successfully", { groupId });
-    res.status(204).send();
+    res.status(200).json({ message: "group successfully deleted" });
   } catch (err) {
     req.log.error("deleteGroup: failed to delete group", { err, groupId });
     sendError(res, CommonErrors.internalError());
