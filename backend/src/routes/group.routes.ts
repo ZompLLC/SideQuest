@@ -4,7 +4,7 @@ import * as groupHandler from "../handlers/group.handler.js";
 export const groupRouter = Router();
 
 groupRouter.post("/groups", groupHandler.createGroup);
-groupRouter.get("/groups", groupHandler.listGroups);
+//groupRouter.get("/groups", groupHandler.listGroups);
 groupRouter.get("/groups/:groupId", groupHandler.getGroup);
 groupRouter.patch("/groups/:groupId", groupHandler.updateGroup);
 groupRouter.delete("/groups/:groupId", groupHandler.deleteGroup);

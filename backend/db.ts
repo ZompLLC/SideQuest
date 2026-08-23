@@ -144,8 +144,7 @@ const GROUP_SELECT_COLUMNS = `
   g.owner_id,
   g.invite_code,
   g.season_length,
-  g.created_at,
-  (SELECT COUNT(*) FROM group_members gm WHERE gm.group_id = g.id) AS member_count
+  g.created_at
 `;
 
 function mapGroupRow(row: any): GroupRecord {
@@ -166,22 +165,15 @@ export async function createGroup(
   ownerId: string,
   inviteCode: string,
   seasonLength: number,
-  createdAt: string,
 ): Promise<GroupRecord> {
-  const client = await pool.connect();
   try {
-    await client.query("BEGIN");
-    const result = await client.query(
-      `INSERT INTO groups (id, name, owner_id, invite_code, season_length, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
+    const result = await pool.query(
+      `INSERT INTO groups (id, name, owner_id, invite_code, season_length)
+       VALUES ($1, $2, $3, $4, $5)
        RETURNING id, name, owner_id, invite_code, season_length, created_at`,
-      [id, name, ownerId, inviteCode, seasonLength, createdAt],
+      [id, name, ownerId, inviteCode, seasonLength],
     );
-    await client.query(
-      `INSERT INTO group_members (group_id, user_id) VALUES ($1, $2)`,
-      [id, ownerId],
-    );
-    await client.query("COMMIT");
+    //TODO add user into usergroups
     const row = result.rows[0];
     return {
       id: row.id,
@@ -192,11 +184,8 @@ export async function createGroup(
       seasonLength: row.season_length,
       createdAt: row.created_at.toISOString(),
     };
-  } catch (err) {
-    await client.query("ROLLBACK");
+  } catch (err: any) {
     throw err;
-  } finally {
-    client.release();
   }
 }
 
@@ -212,20 +201,6 @@ export async function findGroupById(
     return undefined;
   }
   return mapGroupRow(row);
-}
-
-export async function listGroupsForUser(
-  userId: string,
-): Promise<GroupRecord[]> {
-  const result = await pool.query(
-    `SELECT ${GROUP_SELECT_COLUMNS}
-     FROM groups g
-     JOIN group_members gm ON gm.group_id = g.id
-     WHERE gm.user_id = $1
-     ORDER BY g.created_at DESC`,
-    [userId],
-  );
-  return result.rows.map(mapGroupRow);
 }
 
 export interface UpdateGroupFields {

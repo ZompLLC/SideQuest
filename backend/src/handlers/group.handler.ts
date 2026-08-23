@@ -3,7 +3,6 @@ import { Request, Response } from "express";
 import {
   createGroup as dbCreateGroup,
   findGroupById,
-  listGroupsForUser,
   updateGroup as dbUpdateGroup,
   deleteGroup as dbDeleteGroup,
 } from "../../db.js";
@@ -14,18 +13,11 @@ import {
   CreateGroupRequestModel,
   CreateGroupResponseModel,
   GetGroupResponseModel,
-  ListGroupsResponseModel,
   UpdateGroupRequesteModel,
   UpdateGroupResponseModel,
 } from "../models/group.model.js";
 
-// TODO: replace with real auth middleware; assumed to populate req.user.id
-// from the access token once login/logout are wired up to a session store.
-function getAuthedUserId(req: Request): string | undefined {
-  return (req as any).user?.id;
-}
-
-const DEFAULT_SEASON_LENGTH = 18; // TODO: confirm default with product
+const DEFAULT_SEASON_LENGTH = 30;
 
 function generateInviteCode(): string {
   return randomBytes(6).toString("base64url");
@@ -47,7 +39,8 @@ export async function createGroup(
     return;
   }
 
-  const ownerId = getAuthedUserId(req);
+  //TODO get auth user sending request
+  const ownerId = "aeca1f42-a965-415f-9f81-4dec0a76e14";
   if (!ownerId) {
     req.log.warn("createGroup: no authenticated user on request");
     sendError(res, CommonErrors.internalError());
@@ -56,7 +49,6 @@ export async function createGroup(
 
   const groupId = randomUUID();
   const inviteCode = generateInviteCode();
-  const createdAt = new Date().toISOString();
 
   try {
     const group = await dbCreateGroup(
@@ -65,7 +57,6 @@ export async function createGroup(
       ownerId,
       inviteCode,
       DEFAULT_SEASON_LENGTH,
-      createdAt,
     );
     req.log.info("createGroup: group created successfully", {
       groupId,
@@ -74,29 +65,6 @@ export async function createGroup(
     res.status(201).json(group);
   } catch (err) {
     req.log.error("createGroup: failed to create group", { err });
-    sendError(res, CommonErrors.internalError());
-  }
-}
-
-// GET /groups
-export async function listGroups(
-  req: Request,
-  res: Response<ListGroupsResponseModel>,
-): Promise<void> {
-  req.log.info("listGroups: request received");
-
-  const userId = getAuthedUserId(req);
-  if (!userId) {
-    req.log.warn("listGroups: no authenticated user on request");
-    sendError(res, CommonErrors.internalError());
-    return;
-  }
-
-  try {
-    const groups = await listGroupsForUser(userId);
-    res.status(200).json(groups);
-  } catch (err) {
-    req.log.error("listGroups: failed to list groups", { err, userId });
     sendError(res, CommonErrors.internalError());
   }
 }
@@ -139,7 +107,7 @@ export async function updateGroup(
 
   req.log.info("updateGroup: request received", { groupId });
 
-  const userId = getAuthedUserId(req);
+  const userId = "aeca1f42-a965-415f-9f81-4dec0a76e14";
   if (!userId) {
     req.log.warn("updateGroup: no authenticated user on request");
     sendError(res, CommonErrors.internalError());
@@ -189,7 +157,7 @@ export async function deleteGroup(
 
   req.log.info("deleteGroup: request received", { groupId });
 
-  const userId = getAuthedUserId(req);
+  const userId = "aeca1f42-a965-415f-9f81-4dec0a76e14";
   if (!userId) {
     req.log.warn("deleteGroup: no authenticated user on request");
     sendError(res, CommonErrors.internalError());
