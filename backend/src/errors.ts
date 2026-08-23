@@ -33,6 +33,12 @@ export class ApiError extends Error {
   }
 }
 
+export class ServerError extends Error {
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export function sendError(res: Response, err: ApiError): void {
   res.status(err.status).json({
     error: {

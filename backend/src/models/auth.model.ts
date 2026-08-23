@@ -15,13 +15,15 @@ export type RegisterRequestModel = Required<
 export type LoginRequestModel = Required<Pick<UserModel, "email" | "password">>;
 
 // Response Payloads
-export type RegisterResponseModel = Omit<UserModel, "password">;
+export type RegisterResponseModel = {
+  id: string;
+  email: string;
+  username: string;
+  authToken: string;
+};
 
 export type LoginResponseModel = {
   message: string;
   accessToken: string;
-  user: AuthenticatedUserModel;
+  userId: string;
 };
-
-// Middleware & Session Payload
-export type AuthenticatedUserModel = Pick<UserModel, "id" | "username">;

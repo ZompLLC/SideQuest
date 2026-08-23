@@ -5,6 +5,7 @@ import {
   logout as apiLogout,
 } from "../api/auth";
 import { useAuthStore } from "../store/authStore";
+import { useTokenStore } from "@/store/tokenStore";
 
 interface UseAuthResult {
   login: (email: string, password: string) => Promise<void>;
@@ -22,6 +23,9 @@ export function useAuth(): UseAuthResult {
   const [error, setError] = useState<string | null>(null);
   const setUser = useAuthStore((s) => s.setUser);
   const clearUser = useAuthStore((s) => s.clearUser);
+  const token = useTokenStore((s) => s.token);
+  const setToken = useTokenStore((s) => s.setToken);
+  const clearToken = useTokenStore((s) => s.clearToken);
 
   async function login(email: string, password: string) {
     setLoading(true);
@@ -40,8 +44,9 @@ export function useAuth(): UseAuthResult {
     setLoading(true);
     setError(null);
     try {
-      const user = await apiSignup(username, email, password);
+      const { user, authToken } = await apiSignup(username, email, password);
       setUser(user);
+      setToken(authToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Signup failed");
     } finally {
@@ -50,8 +55,9 @@ export function useAuth(): UseAuthResult {
   }
 
   async function logout() {
-    await apiLogout();
+    await apiLogout(token ?? "");
     clearUser();
+    clearToken();
   }
 
   return { login, signup, logout, loading, error };
