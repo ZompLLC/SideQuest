@@ -17,4 +17,13 @@ module.exports = tseslint.config(
       "@typescript-eslint/no-namespace": ["error", { allowDeclarations: true }],
     },
   },
+  {
+    files: ["**/tests/**"],
+    rules: {
+      // Combined unit/integration test files need jest.resetModules() +
+      // require() to re-import mocked vs. real modules per describe block --
+      // a static import is bound once at file-parse time and can't do that.
+      "@typescript-eslint/no-require-imports": "off",
+    },
+  },
 );
