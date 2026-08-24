@@ -4,6 +4,7 @@ import {
   signup as apiSignup,
   logout as apiLogout,
 } from "../api/auth";
+import { updateUser as apiUpdateUser } from "../api/user";
 import { useAuthStore } from "../store/authStore";
 import { useTokenStore } from "@/store/tokenStore";
 
@@ -11,6 +12,7 @@ interface UseAuthResult {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  updateUsername: (username: string) => Promise<void>;
   loading: boolean;
   error: string | null;
 }
@@ -21,6 +23,7 @@ interface UseAuthResult {
 export function useAuth(): UseAuthResult {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const clearUser = useAuthStore((s) => s.clearUser);
   const token = useTokenStore((s) => s.token);
@@ -60,5 +63,19 @@ export function useAuth(): UseAuthResult {
     clearToken();
   }
 
-  return { login, signup, logout, loading, error };
+  async function updateUsername(username: string) {
+    if (!user) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const updated = await apiUpdateUser(user.id, username);
+      setUser(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Update failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return { login, signup, logout, updateUsername, loading, error };
 }
