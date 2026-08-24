@@ -5,6 +5,7 @@ import {
   findGroupById,
   updateGroup as dbUpdateGroup,
   deleteGroup as dbDeleteGroup,
+  addUserToGroup,
 } from "../../db.js";
 import { sendError } from "../errors/errors.js";
 import { GroupErrors } from "../errors/group.errors";
@@ -29,21 +30,13 @@ export async function createGroup(
   res: Response<CreateGroupResponseModel>,
 ): Promise<void> {
   const { name } = req.body;
-
   req.log.info("createGroup: request received", { name });
+  const userId = req.userId!;
 
   const missing = requireFields(req.body, ["name"]);
   if (missing) {
     req.log.warn("createGroup: validation failed, missing required fields");
     sendError(res, CommonErrors.missingField());
-    return;
-  }
-
-  //TODO get auth user sending request
-  const ownerId = "aeca1f42-a965-415f-9f81-4dec0a76e14";
-  if (!ownerId) {
-    req.log.warn("createGroup: no authenticated user on request");
-    sendError(res, CommonErrors.internalError());
     return;
   }
 
@@ -54,13 +47,18 @@ export async function createGroup(
     const group = await dbCreateGroup(
       groupId,
       name,
-      ownerId,
+      userId,
       inviteCode,
       DEFAULT_SEASON_LENGTH,
     );
     req.log.info("createGroup: group created successfully", {
       groupId,
-      ownerId,
+      userId,
+    });
+    await addUserToGroup(userId, groupId);
+    req.log.info("createGroup: owner added to group", {
+      groupId,
+      userId,
     });
     res.status(201).json(group);
   } catch (err) {
