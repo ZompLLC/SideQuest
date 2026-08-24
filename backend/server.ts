@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { checkDbConnection } from "./db.js";
-import { winstonLogger } from "./src/logger.js";
+import { winstonLogger } from "./src/util/logger.js";
 import { app } from "./src/app.js";
 
 // load environment vars
