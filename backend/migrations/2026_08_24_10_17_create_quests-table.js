@@ -29,5 +29,5 @@ exports.up = (pgm) => {
  * @param pgm {import('node-pg-migrate').MigrationBuilder}
  */
 exports.down = (pgm) => {
-  pgm.dropTable("groups");
+  pgm.dropTable("quests");
 };
