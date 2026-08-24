@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
-import { listGroups, createGroup as apiCreateGroup } from "../api/groups";
+import {
+  getGroups,
+  listGroups,
+  createGroup as apiCreateGroup,
+} from "../api/groups";
 import { useTokenStore } from "../store/tokenStore";
 import { Group } from "../types";
 
@@ -13,8 +17,9 @@ interface UseGroupsResult {
   createError: string | null;
 }
 
-// Backs the Groups tab specifically -- uses the real listGroups()/
-// createGroup() backend calls, not the mocked getGroups() HomeScreen uses.
+// Backs the Groups tab specifically. Shows the same hardcoded mock groups
+// HomeScreen renders (via getGroups()) alongside real groups from the
+// backend (via listGroups()), so groups created here show up too.
 export function useGroups(): UseGroupsResult {
   const token = useTokenStore((s) => s.token);
   const [groups, setGroups] = useState<Group[]>([]);
@@ -32,9 +37,9 @@ export function useGroups(): UseGroupsResult {
     let ignore = false;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    listGroups(token)
-      .then((data) => {
-        if (!ignore) setGroups(data);
+    Promise.all([getGroups(), listGroups(token)])
+      .then(([mockGroups, realGroups]) => {
+        if (!ignore) setGroups([...mockGroups, ...realGroups]);
       })
       .catch((err) => {
         if (!ignore) setError(err);
