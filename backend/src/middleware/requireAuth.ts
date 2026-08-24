@@ -31,10 +31,17 @@ export function requireAuth(
     return;
   }
 
-  const payload = jwt.verify(token, JWT_SECRET);
+  let payload;
+  try {
+    payload = jwt.verify(token, JWT_SECRET);
+  } catch (err) {
+    req.log.info("requireAuth: token verification failed.", { err });
+    sendError(res, AuthErrors.unauthorized());
+    return;
+  }
 
   if (typeof payload === "string" || typeof payload.userId !== "string") {
-    req.log.warn("requireAuth: authentication token has an invalid payload.", {
+    req.log.info("requireAuth: authentication token has an invalid payload.", {
       payload,
     });
     sendError(res, AuthErrors.unauthorized());

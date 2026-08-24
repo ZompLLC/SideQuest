@@ -5,7 +5,7 @@ import { requireAuth } from "../middleware/requireAuth.js";
 export const groupRouter = Router();
 
 groupRouter.post("/groups", requireAuth, groupHandler.createGroup);
-//groupRouter.get("/groups", groupHandler.listGroups);
+groupRouter.get("/groups", requireAuth, groupHandler.listGroups);
 groupRouter.get("/groups/:groupId", groupHandler.getGroup);
 groupRouter.patch("/groups/:groupId", groupHandler.updateGroup);
 groupRouter.delete("/groups/:groupId", groupHandler.deleteGroup);

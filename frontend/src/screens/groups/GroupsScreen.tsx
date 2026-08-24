@@ -1,33 +1,61 @@
-import React, { useEffect, useState } from "react";
-import { Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import {
+  Text,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { colors, spacing } from "../../theme";
-import { getGroups } from "../../api/groups";
-import { GroupsStackParamList, Group } from "../../types";
+import { useGroups } from "../../hooks/useGroups";
+import Button from "../../components/Button";
+import { GroupsStackParamList } from "../../types";
 
 type Props = NativeStackScreenProps<GroupsStackParamList, "GroupsList">;
 
 export default function GroupsScreen({ navigation }: Props) {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { groups, loading, createGroup, creating, createError } = useGroups();
+  const [creatingOpen, setCreatingOpen] = useState(false);
+  const [name, setName] = useState("");
 
-  useEffect(() => {
-    let mounted = true;
-    getGroups()
-      .then((data) => {
-        if (mounted) setGroups(data);
-      })
-      .finally(() => {
-        if (mounted) setLoading(false);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  async function handleCreate() {
+    if (creating) return;
+    await createGroup(name);
+    setName("");
+    setCreatingOpen(false);
+  }
 
   return (
     <SafeAreaView style={styles.container}>
+      {creatingOpen ? (
+        <View style={styles.createForm}>
+          <TextInput
+            style={styles.input}
+            value={name}
+            onChangeText={setName}
+            placeholder="Group name"
+            placeholderTextColor={colors.textMuted}
+          />
+          {createError && <Text style={styles.error}>{createError}</Text>}
+          <View style={styles.createActions}>
+            <Button
+              title="Cancel"
+              variant="secondary"
+              onPress={() => setCreatingOpen(false)}
+            />
+            <Button
+              title={creating ? "Creating..." : "Create"}
+              onPress={handleCreate}
+            />
+          </View>
+        </View>
+      ) : (
+        <Button title="+ Add Group" onPress={() => setCreatingOpen(true)} />
+      )}
+
       {loading ? (
         <Text style={styles.loading}>Loading…</Text>
       ) : groups.length === 0 ? (
@@ -62,8 +90,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
     padding: spacing.lg,
+    gap: spacing.md,
   },
   loading: { color: colors.textMuted },
+  createForm: { gap: spacing.sm },
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 10,
+    padding: spacing.sm,
+    color: colors.text,
+  },
+  createActions: { flexDirection: "row", gap: spacing.sm },
+  error: { color: colors.warning, fontSize: 13 },
   card: {
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.textMuted,

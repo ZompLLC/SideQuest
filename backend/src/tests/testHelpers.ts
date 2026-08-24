@@ -13,11 +13,13 @@ export function createMockRequest<T extends Record<string, unknown>>(
   body: T,
   params: Record<string, string> = {},
   userId?: string,
+  query: Record<string, string> = {},
 ): Request {
   return {
     body,
     params,
     userId,
+    query,
     log: createMockLogger(),
   } as unknown as Request;
 }
