@@ -21,7 +21,7 @@ import jwt from "jsonwebtoken";
 import { getJwtSecret } from "../util/env.js";
 
 const JWT_SECRET = getJwtSecret();
-const PASSWORD_SALT_ROUNDS = 10;
+export const PASSWORD_SALT_ROUNDS = 10;
 
 // POST /register
 export async function register(
