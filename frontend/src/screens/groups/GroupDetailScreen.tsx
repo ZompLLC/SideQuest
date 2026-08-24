@@ -1,5 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Text, View, ScrollView, StyleSheet } from "react-native";
+import {
+  Text,
+  View,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { colors, spacing } from "../../theme";
@@ -61,7 +67,9 @@ export default function GroupDetailScreen({ route, navigation }: Props) {
             {group.memberCount} members · {group.seasonLength}-day season
           </Text>
           {group.inviteCode && (
-            <Text style={styles.inviteCode}>Invite code: {group.inviteCode}</Text>
+            <Text style={styles.inviteCode}>
+              Invite code: {group.inviteCode}
+            </Text>
           )}
         </View>
 
@@ -72,9 +80,24 @@ export default function GroupDetailScreen({ route, navigation }: Props) {
           <LeaderboardList entries={leaderboard} />
         )}
 
-        <Text style={[styles.sectionLabel, styles.challengesLabel]}>
-          Challenges
-        </Text>
+        <View style={styles.challengesHeaderRow}>
+          <Text style={[styles.sectionLabel, styles.challengesLabel]}>
+            Challenges
+          </Text>
+          <TouchableOpacity
+            style={styles.createChallengeButton}
+            onPress={() =>
+              navigation.navigate("CreateChallenge", { groupId: group.id })
+            }
+            accessibilityRole="button"
+            accessibilityLabel="Create a new challenge for this group"
+          >
+            <Text style={styles.createChallengeButtonText}>
+              + New Challenge
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {challenges.length === 0 ? (
           <Text style={styles.loading}>No challenges in this group yet.</Text>
         ) : (
@@ -114,4 +137,20 @@ const styles = StyleSheet.create({
   },
   challengesLabel: { marginTop: spacing.lg },
   loading: { color: colors.textMuted },
+  challengesHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  createChallengeButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+    backgroundColor: "#2563eb", // swap for your theme color
+  },
+  createChallengeButtonText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 13,
+  },
 });

@@ -9,9 +9,11 @@ export interface Challenge {
   title: string;
   challenger: string;
   opponent: string;
-  points: number;
+  pointValue: number;
   status: ChallengeStatus;
   groupId: string;
+  description: string;
+  dueAt: Date;
 }
 
 export interface User {
@@ -75,6 +77,7 @@ export type GroupsStackParamList = {
   GroupsList: undefined;
   GroupDetail: { id: string; openChallengeId?: string };
   ChallengeDetail: { id: string };
+  CreateChallenge: { groupId: string };
 };
 
 export type ProfileStackParamList = {

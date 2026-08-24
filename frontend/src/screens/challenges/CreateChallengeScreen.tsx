@@ -5,27 +5,31 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { colors, spacing } from "../../theme";
 import { createChallenge } from "../../api/challenges";
 import Button from "../../components/Button";
-import { ChallengesStackParamList } from "../../types";
+import { GroupsStackParamList } from "../../types";
+import { useTokenStore } from "@/store/tokenStore";
 
-type Props = NativeStackScreenProps<
-  ChallengesStackParamList,
-  "CreateChallenge"
->;
+type Props = NativeStackScreenProps<GroupsStackParamList, "CreateChallenge">;
 
-export default function CreateChallengeScreen({ navigation }: Props) {
+export default function CreateChallengeScreen({ route, navigation }: Props) {
   const [title, setTitle] = useState("");
-  const [opponent, setOpponent] = useState("");
+  const [description, setDescription] = useState("");
+  const [points, setPoints] = useState("");
+  const [dueAt, setDueAt] = useState(""); // expects "YYYY-MM-DD" for now;
   const [saving, setSaving] = useState(false);
+  const token = useTokenStore((s) => s.token);
 
   async function handleCreate() {
     setSaving(true);
-    await createChallenge({
-      title,
-      opponent,
-      challenger: "You",
-      points: 10,
-      groupId: "g1",
-    });
+    await createChallenge(
+      {
+        title,
+        description,
+        pointValue: Number(points) || 0,
+        dueAt: new Date(dueAt),
+      },
+      route.params.groupId,
+      token!,
+    );
     setSaving(false);
     navigation.goBack();
   }
@@ -42,10 +46,26 @@ export default function CreateChallengeScreen({ navigation }: Props) {
       />
       <TextInput
         style={styles.input}
-        placeholder="Opponent's name"
+        placeholder="Description"
         placeholderTextColor={colors.textMuted}
-        value={opponent}
-        onChangeText={setOpponent}
+        value={description}
+        onChangeText={setDescription}
+        multiline
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Points"
+        placeholderTextColor={colors.textMuted}
+        value={points}
+        onChangeText={setPoints}
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Due date (YYYY-MM-DD)"
+        placeholderTextColor={colors.textMuted}
+        value={dueAt}
+        onChangeText={setDueAt}
       />
       <Button
         title={saving ? "Saving…" : "Create Challenge"}
