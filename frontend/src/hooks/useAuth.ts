@@ -4,7 +4,11 @@ import {
   signup as apiSignup,
   logout as apiLogout,
 } from "../api/auth";
-import { updateUser as apiUpdateUser } from "../api/user";
+import {
+  updateUser as apiUpdateUser,
+  changePassword as apiChangePassword,
+  changeEmail as apiChangeEmail,
+} from "../api/user";
 import { useAuthStore } from "../store/authStore";
 import { useTokenStore } from "@/store/tokenStore";
 
@@ -12,9 +16,18 @@ interface UseAuthResult {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateUsername: (username: string) => Promise<void>;
+  updateUsername: (username: string) => Promise<boolean>;
   loading: boolean;
   error: string | null;
+  changePassword: (
+    currentPassword: string,
+    newPassword: string,
+  ) => Promise<boolean>;
+  changingPassword: boolean;
+  changePasswordError: string | null;
+  changeEmail: (currentPassword: string, newEmail: string) => Promise<boolean>;
+  changingEmail: boolean;
+  changeEmailError: string | null;
 }
 
 // Wraps the auth API calls with per-screen loading/error state,
@@ -23,6 +36,14 @@ interface UseAuthResult {
 export function useAuth(): UseAuthResult {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [changePasswordError, setChangePasswordError] = useState<
+    string | null
+  >(null);
+  const [changingEmail, setChangingEmail] = useState(false);
+  const [changeEmailError, setChangeEmailError] = useState<string | null>(
+    null,
+  );
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const clearUser = useAuthStore((s) => s.clearUser);
@@ -64,19 +85,80 @@ export function useAuth(): UseAuthResult {
     clearToken();
   }
 
-  async function updateUsername(username: string) {
-    if (!user) return;
+  async function updateUsername(username: string): Promise<boolean> {
+    if (!user) return false;
     setLoading(true);
     setError(null);
     try {
       const updated = await apiUpdateUser(user.id, username);
       setUser(updated);
+      return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
+      return false;
     } finally {
       setLoading(false);
     }
   }
 
-  return { login, signup, logout, updateUsername, loading, error };
+  async function changePassword(
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<boolean> {
+    if (!user || !token) return false;
+    setChangingPassword(true);
+    setChangePasswordError(null);
+    try {
+      await apiChangePassword(user.id, currentPassword, newPassword, token);
+      return true;
+    } catch (err) {
+      setChangePasswordError(
+        err instanceof Error ? err.message : "Failed to change password",
+      );
+      return false;
+    } finally {
+      setChangingPassword(false);
+    }
+  }
+
+  async function changeEmail(
+    currentPassword: string,
+    newEmail: string,
+  ): Promise<boolean> {
+    if (!user || !token) return false;
+    setChangingEmail(true);
+    setChangeEmailError(null);
+    try {
+      const updated = await apiChangeEmail(
+        user.id,
+        currentPassword,
+        newEmail,
+        token,
+      );
+      setUser(updated);
+      return true;
+    } catch (err) {
+      setChangeEmailError(
+        err instanceof Error ? err.message : "Failed to change email",
+      );
+      return false;
+    } finally {
+      setChangingEmail(false);
+    }
+  }
+
+  return {
+    login,
+    signup,
+    logout,
+    updateUsername,
+    loading,
+    error,
+    changePassword,
+    changingPassword,
+    changePasswordError,
+    changeEmail,
+    changingEmail,
+    changeEmailError,
+  };
 }
