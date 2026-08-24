@@ -5,11 +5,5 @@ import { requireAuth } from "../middleware/requireAuth.js";
 export const userRouter = Router();
 
 userRouter.get("/users/:userId", userHandler.getUser);
-userRouter.patch("/users/:userId", userHandler.updateUser);
-userRouter.patch(
-  "/users/:userId/password",
-  requireAuth,
-  userHandler.changePassword,
-);
-userRouter.patch("/users/:userId/email", requireAuth, userHandler.changeEmail);
+userRouter.patch("/users/:userId", requireAuth, userHandler.updateUser);
 userRouter.get("/users/:userId/stats", userHandler.getUserStats);

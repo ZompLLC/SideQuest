@@ -12,60 +12,33 @@ export async function getUser(userId: string): Promise<User> {
   return { id, username, email };
 }
 
-export async function updateUser(userId: string, username: string): Promise<User> {
+export interface UpdateUserPayload {
+  username?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  newEmail?: string;
+}
+
+// Single combined endpoint -- any subset of username/newPassword/newEmail
+// can be set in one call; currentPassword is required whenever newPassword
+// or newEmail is present. Always requires auth now, including username-only
+// changes (the backend used to allow that without a token).
+export async function updateUser(
+  userId: string,
+  updates: UpdateUserPayload,
+  token: string,
+): Promise<User> {
   const res = await fetch(`http://${SERVER_URL}/users/${userId}`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ username }),
+    body: JSON.stringify(updates),
   });
 
   const data = await res.json();
   if (!res.ok) throw new Error(data.error?.message ?? "Failed to update user");
-
-  const { id, username: updatedUsername, email } = data;
-  return { id, username: updatedUsername, email };
-}
-
-export async function changePassword(
-  userId: string,
-  currentPassword: string,
-  newPassword: string,
-  token: string,
-): Promise<void> {
-  const res = await fetch(`http://${SERVER_URL}/users/${userId}/password`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ currentPassword, newPassword }),
-  });
-
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data.error?.message ?? "Failed to change password");
-  }
-}
-
-export async function changeEmail(
-  userId: string,
-  currentPassword: string,
-  newEmail: string,
-  token: string,
-): Promise<User> {
-  const res = await fetch(`http://${SERVER_URL}/users/${userId}/email`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ currentPassword, newEmail }),
-  });
-
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message ?? "Failed to change email");
 
   const { id, username, email } = data;
   return { id, username, email };

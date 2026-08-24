@@ -6,21 +6,14 @@ export type UserProfileModel = {
   createdAt: string;
 };
 
-// Request body for PATCH /users/me
+// Request body for PATCH /users/me. Any subset of username/newPassword/
+// newEmail can be set in one call; currentPassword is required whenever
+// newPassword or newEmail is present.
 export type UpdateUserRequestModel = {
-  username: string;
-};
-
-// Request body for PATCH /users/me/password
-export type ChangePasswordRequestModel = {
-  currentPassword: string;
-  newPassword: string;
-};
-
-// Request body for PATCH /users/me/email
-export type ChangeEmailRequestModel = {
-  currentPassword: string;
-  newEmail: string;
+  username?: string;
+  currentPassword?: string;
+  newPassword?: string;
+  newEmail?: string;
 };
 
 // Response payload for GET /users/me/stats

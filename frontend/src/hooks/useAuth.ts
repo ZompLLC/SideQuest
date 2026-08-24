@@ -4,11 +4,7 @@ import {
   signup as apiSignup,
   logout as apiLogout,
 } from "../api/auth";
-import {
-  updateUser as apiUpdateUser,
-  changePassword as apiChangePassword,
-  changeEmail as apiChangeEmail,
-} from "../api/user";
+import { updateUser as apiUpdateUser } from "../api/user";
 import { useAuthStore } from "../store/authStore";
 import { useTokenStore } from "@/store/tokenStore";
 
@@ -86,11 +82,11 @@ export function useAuth(): UseAuthResult {
   }
 
   async function updateUsername(username: string): Promise<boolean> {
-    if (!user) return false;
+    if (!user || !token) return false;
     setLoading(true);
     setError(null);
     try {
-      const updated = await apiUpdateUser(user.id, username);
+      const updated = await apiUpdateUser(user.id, { username }, token);
       setUser(updated);
       return true;
     } catch (err) {
@@ -109,7 +105,11 @@ export function useAuth(): UseAuthResult {
     setChangingPassword(true);
     setChangePasswordError(null);
     try {
-      await apiChangePassword(user.id, currentPassword, newPassword, token);
+      await apiUpdateUser(
+        user.id,
+        { currentPassword, newPassword },
+        token,
+      );
       return true;
     } catch (err) {
       setChangePasswordError(
@@ -129,10 +129,9 @@ export function useAuth(): UseAuthResult {
     setChangingEmail(true);
     setChangeEmailError(null);
     try {
-      const updated = await apiChangeEmail(
+      const updated = await apiUpdateUser(
         user.id,
-        currentPassword,
-        newEmail,
+        { currentPassword, newEmail },
         token,
       );
       setUser(updated);

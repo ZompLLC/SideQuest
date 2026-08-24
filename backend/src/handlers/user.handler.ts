@@ -5,20 +5,13 @@ import {
   DuplicateUserError,
   findUserById,
   findUserCredentialsById,
-  updateUsername,
-  updatePassword,
-  updateEmail,
+  updateUserFields,
 } from "../../db.js";
 import { sendError } from "../errors/errors.js";
 import { UserErrors } from "../errors/user.errors";
 import { AuthErrors } from "../errors/auth.errors";
-import { CommonErrors, requireFields } from "../errors/common.errors";
-import {
-  ChangeEmailRequestModel,
-  ChangePasswordRequestModel,
-  UpdateUserRequestModel,
-  UserStatsModel,
-} from "../models/user.model.js";
+import { CommonErrors } from "../errors/common.errors";
+import { UpdateUserRequestModel, UserStatsModel } from "../models/user.model.js";
 
 const PASSWORD_SALT_ROUNDS = 10;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,17 +45,44 @@ export async function getUser(
 }
 
 // PATCH /users/:userId
-// NOTE: no auth for now -- userId comes straight from the URL.
+// Auth: requester must be updating their own account. Accepts any subset
+// of username/newPassword/newEmail in one request; currentPassword is
+// required whenever newPassword or newEmail is present.
 export async function updateUser(
   req: Request<{ userId: string }, Record<string, never>, UpdateUserRequestModel>,
   res: Response,
 ): Promise<void> {
   const { userId } = req.params;
-  const { username } = req.body;
+  const { username, currentPassword, newPassword, newEmail } = req.body;
 
   req.log.info("updateUser: request received", { userId });
 
-  if (!username || username.length < 3 || username.length > 20) {
+  if (req.userId !== userId) {
+    req.log.info("updateUser: forbidden, not own account", {
+      userId,
+      requesterId: req.userId,
+    });
+    sendError(
+      res,
+      AuthErrors.unauthorized("You can only update your own account."),
+    );
+    return;
+  }
+
+  if (username === undefined && newPassword === undefined && newEmail === undefined) {
+    req.log.info("updateUser: validation failed, nothing to update", {
+      userId,
+    });
+    sendError(
+      res,
+      CommonErrors.missingField(
+        "At least one of username, newPassword, or newEmail is required.",
+      ),
+    );
+    return;
+  }
+
+  if (username !== undefined && (username.length < 3 || username.length > 20)) {
     req.log.info("updateUser: validation failed, bad username", { userId });
     sendError(
       res,
@@ -74,67 +94,8 @@ export async function updateUser(
     return;
   }
 
-  try {
-    const user = await updateUsername(userId, username);
-    if (!user) {
-      req.log.info("updateUser: no matching user", { userId });
-      sendError(res, UserErrors.userNotFound());
-      return;
-    }
-    req.log.info("updateUser: username updated successfully", { userId });
-    res.status(200).json(user);
-  } catch (err) {
-    if (err instanceof DuplicateUsernameError) {
-      req.log.info("updateUser: username taken", { userId, username });
-      sendError(res, UserErrors.usernameTaken(err.message));
-      return;
-    }
-    req.log.info("updateUser: failed to update user", { userId, err });
-    sendError(res, CommonErrors.internalError());
-    return;
-  }
-}
-
-// PATCH /users/:userId/password
-// Auth: requester must be changing their own password.
-export async function changePassword(
-  req: Request<
-    { userId: string },
-    Record<string, never>,
-    ChangePasswordRequestModel
-  >,
-  res: Response,
-): Promise<void> {
-  const { userId } = req.params;
-  const { currentPassword, newPassword } = req.body;
-
-  req.log.info("changePassword: request received", { userId });
-
-  if (req.userId !== userId) {
-    req.log.info("changePassword: forbidden, not own account", {
-      userId,
-      requesterId: req.userId,
-    });
-    sendError(
-      res,
-      AuthErrors.unauthorized("You can only change your own password."),
-    );
-    return;
-  }
-
-  const missing = requireFields(req.body, ["currentPassword", "newPassword"]);
-  if (missing) {
-    req.log.info("changePassword: validation failed, missing required fields", {
-      userId,
-    });
-    sendError(res, CommonErrors.missingField());
-    return;
-  }
-
-  if (newPassword.length < 8) {
-    req.log.info("changePassword: validation failed, weak password", {
-      userId,
-    });
+  if (newPassword !== undefined && newPassword.length < 8) {
+    req.log.info("updateUser: validation failed, weak password", { userId });
     sendError(
       res,
       AuthErrors.weakPassword("Password needs to be 8 characters or longer."),
@@ -142,130 +103,84 @@ export async function changePassword(
     return;
   }
 
-  let credentials;
-  try {
-    credentials = await findUserCredentialsById(userId);
-  } catch (err) {
-    req.log.info("changePassword: failed to look up user", { userId, err });
-    sendError(res, CommonErrors.internalError());
-    return;
-  }
-
-  if (!credentials) {
-    req.log.info("changePassword: no matching user", { userId });
-    sendError(res, UserErrors.userNotFound());
-    return;
-  }
-
-  const currentPasswordMatches = await bcrypt.compare(
-    currentPassword,
-    credentials.passwordHash,
-  );
-  if (!currentPasswordMatches) {
-    req.log.info("changePassword: current password incorrect", { userId });
-    sendError(res, AuthErrors.invalidCredentials());
-    return;
-  }
-
-  try {
-    const newPasswordHash = await bcrypt.hash(newPassword, PASSWORD_SALT_ROUNDS);
-    await updatePassword(userId, newPasswordHash);
-    req.log.info("changePassword: password updated successfully", { userId });
-    res.status(200).json({ message: "Password updated successfully." });
-  } catch (err) {
-    req.log.info("changePassword: failed to update password", {
-      userId,
-      err,
-    });
-    sendError(res, CommonErrors.internalError());
-  }
-}
-
-// PATCH /users/:userId/email
-// Auth: requester must be changing their own email.
-export async function changeEmail(
-  req: Request<
-    { userId: string },
-    Record<string, never>,
-    ChangeEmailRequestModel
-  >,
-  res: Response,
-): Promise<void> {
-  const { userId } = req.params;
-  const { currentPassword, newEmail } = req.body;
-
-  req.log.info("changeEmail: request received", { userId });
-
-  if (req.userId !== userId) {
-    req.log.info("changeEmail: forbidden, not own account", {
-      userId,
-      requesterId: req.userId,
-    });
-    sendError(
-      res,
-      AuthErrors.unauthorized("You can only change your own email."),
-    );
-    return;
-  }
-
-  const missing = requireFields(req.body, ["currentPassword", "newEmail"]);
-  if (missing) {
-    req.log.info("changeEmail: validation failed, missing required fields", {
-      userId,
-    });
-    sendError(res, CommonErrors.missingField());
-    return;
-  }
-
-  if (!EMAIL_REGEX.test(newEmail)) {
-    req.log.info("changeEmail: validation failed, bad email format", {
+  if (newEmail !== undefined && !EMAIL_REGEX.test(newEmail)) {
+    req.log.info("updateUser: validation failed, bad email format", {
       userId,
     });
     sendError(res, AuthErrors.invalidEmailFormat(newEmail));
     return;
   }
 
-  let credentials;
-  try {
-    credentials = await findUserCredentialsById(userId);
-  } catch (err) {
-    req.log.info("changeEmail: failed to look up user", { userId, err });
-    sendError(res, CommonErrors.internalError());
-    return;
-  }
+  let passwordHash: string | undefined;
+  if (newPassword !== undefined || newEmail !== undefined) {
+    if (!currentPassword) {
+      req.log.info("updateUser: validation failed, missing current password", {
+        userId,
+      });
+      sendError(
+        res,
+        CommonErrors.missingField(
+          "currentPassword is required to change your password or email.",
+        ),
+      );
+      return;
+    }
 
-  if (!credentials) {
-    req.log.info("changeEmail: no matching user", { userId });
-    sendError(res, UserErrors.userNotFound());
-    return;
-  }
+    let credentials;
+    try {
+      credentials = await findUserCredentialsById(userId);
+    } catch (err) {
+      req.log.info("updateUser: failed to look up user", { userId, err });
+      sendError(res, CommonErrors.internalError());
+      return;
+    }
 
-  const currentPasswordMatches = await bcrypt.compare(
-    currentPassword,
-    credentials.passwordHash,
-  );
-  if (!currentPasswordMatches) {
-    req.log.info("changeEmail: current password incorrect", { userId });
-    sendError(res, AuthErrors.invalidCredentials());
-    return;
-  }
-
-  try {
-    const user = await updateEmail(userId, newEmail);
-    if (!user) {
-      req.log.info("changeEmail: no matching user", { userId });
+    if (!credentials) {
+      req.log.info("updateUser: no matching user", { userId });
       sendError(res, UserErrors.userNotFound());
       return;
     }
-    req.log.info("changeEmail: email updated successfully", { userId });
-    res.status(200).json(user);
-  } catch (err) {
-    if (err instanceof DuplicateUserError) {
-      req.log.info("changeEmail: email already in use", { userId });
-      sendError(res, AuthErrors.emailAlreadyExists(newEmail));
+
+    const currentPasswordMatches = await bcrypt.compare(
+      currentPassword,
+      credentials.passwordHash,
+    );
+    if (!currentPasswordMatches) {
+      req.log.info("updateUser: current password incorrect", { userId });
+      sendError(res, AuthErrors.invalidCredentials());
       return;
     }
-    req.log.info("changeEmail: failed to update email", { userId, err });
+
+    if (newPassword !== undefined) {
+      passwordHash = await bcrypt.hash(newPassword, PASSWORD_SALT_ROUNDS);
+    }
+  }
+
+  try {
+    const user = await updateUserFields(userId, {
+      username,
+      passwordHash,
+      email: newEmail,
+    });
+    if (!user) {
+      req.log.info("updateUser: no matching user", { userId });
+      sendError(res, UserErrors.userNotFound());
+      return;
+    }
+    req.log.info("updateUser: user updated successfully", { userId });
+    res.status(200).json(user);
+  } catch (err) {
+    if (err instanceof DuplicateUsernameError) {
+      req.log.info("updateUser: username taken", { userId, username });
+      sendError(res, UserErrors.usernameTaken(err.message));
+      return;
+    }
+    if (err instanceof DuplicateUserError) {
+      req.log.info("updateUser: email already in use", { userId });
+      sendError(res, AuthErrors.emailAlreadyExists(newEmail!));
+      return;
+    }
+    req.log.info("updateUser: failed to update user", { userId, err });
     sendError(res, CommonErrors.internalError());
   }
 }

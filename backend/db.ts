@@ -100,34 +100,6 @@ export async function findUserById(
   };
 }
 
-export async function updateUsername(
-  id: string,
-  username: string,
-): Promise<UserRecord | undefined> {
-  try {
-    const result = await pool.query(
-      `UPDATE users SET username = $2 WHERE id = $1
-       RETURNING id, email, username, created_at`,
-      [id, username],
-    );
-    const row = result.rows[0];
-    if (!row) {
-      return undefined;
-    }
-    return {
-      id: row.id,
-      email: row.email,
-      username: row.username,
-      createdAt: row.created_at.toISOString(),
-    };
-  } catch (err) {
-    if (err instanceof DatabaseError && err.code === "23505") {
-      throw new DuplicateUsernameError("That username is already in use.");
-    }
-    throw err;
-  }
-}
-
 export async function findUserCredentialsById(
   id: string,
 ): Promise<UserCredentials | undefined> {
@@ -146,26 +118,44 @@ export async function findUserCredentialsById(
   };
 }
 
-export async function updatePassword(
-  id: string,
-  passwordHash: string,
-): Promise<boolean> {
-  const result = await pool.query(
-    `UPDATE users SET password_hash = $2 WHERE id = $1`,
-    [id, passwordHash],
-  );
-  return (result.rowCount ?? 0) > 0;
+export interface UpdateUserFields {
+  username?: string;
+  passwordHash?: string;
+  email?: string;
 }
 
-export async function updateEmail(
+// Backs the combined PATCH /users/:userId -- any subset of username/
+// passwordHash/email can be set in one call, mirroring updateGroup()'s
+// dynamic SET clause below.
+export async function updateUserFields(
   id: string,
-  email: string,
+  fields: UpdateUserFields,
 ): Promise<UserRecord | undefined> {
+  const setClauses: string[] = [];
+  const values: unknown[] = [id];
+
+  if (fields.username !== undefined) {
+    values.push(fields.username);
+    setClauses.push(`username = $${values.length}`);
+  }
+  if (fields.passwordHash !== undefined) {
+    values.push(fields.passwordHash);
+    setClauses.push(`password_hash = $${values.length}`);
+  }
+  if (fields.email !== undefined) {
+    values.push(fields.email);
+    setClauses.push(`email = $${values.length}`);
+  }
+
+  if (setClauses.length === 0) {
+    return findUserById(id);
+  }
+
   try {
     const result = await pool.query(
-      `UPDATE users SET email = $2 WHERE id = $1
+      `UPDATE users SET ${setClauses.join(", ")} WHERE id = $1
        RETURNING id, email, username, created_at`,
-      [id, email],
+      values,
     );
     const row = result.rows[0];
     if (!row) {
@@ -179,6 +169,9 @@ export async function updateEmail(
     };
   } catch (err) {
     if (err instanceof DatabaseError && err.code === "23505") {
+      if (err.constraint === "users_username_key") {
+        throw new DuplicateUsernameError("That username is already in use.");
+      }
       throw new DuplicateUserError(
         "An account with this email already exists.",
       );
