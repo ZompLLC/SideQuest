@@ -1,5 +1,5 @@
 import express, { Request, Response } from "express";
-import { logger, requestLogger } from "./logger.js";
+import { logger, requestLogger } from "./util/logger.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { groupRouter } from "./routes/group.routes.js";
 import { userRouter } from "./routes/user.routes.js";

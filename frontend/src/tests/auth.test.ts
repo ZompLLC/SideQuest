@@ -1,50 +1,89 @@
 import { login, signup } from "../api/auth";
 
 describe("login", () => {
-  type LoginCase = {
-    name: string;
-    email: string;
-    password: string;
-    shouldResolve: boolean;
-  };
+  const originalFetch = global.fetch;
 
-  const cases: LoginCase[] = [
-    {
-      name: "valid credentials",
-      email: "a@example.com",
-      password: "longenough1",
-      shouldResolve: true,
-    },
-    {
-      name: "missing email",
-      email: "",
-      password: "longenough1",
-      shouldResolve: false,
-    },
-    {
-      name: "missing password",
-      email: "a@example.com",
-      password: "",
-      shouldResolve: false,
-    },
-  ];
+  afterEach(() => {
+    global.fetch = originalFetch;
+    jest.clearAllMocks();
+  });
 
-  it.each(cases)(
-    "$name -> resolves: $shouldResolve",
-    async ({ email, password, shouldResolve }) => {
-      if (shouldResolve) {
-        await expect(login(email, password)).resolves.toMatchObject({
-          id: "u3",
-          username: "You",
-          email: "you@example.com",
-        });
-      } else {
-        await expect(login(email, password)).rejects.toThrow(
-          "Invalid credentials",
-        );
-      }
-    },
-  );
+  it("posts to /login, fetches the user profile, and returns it with the auth token", async () => {
+    global.fetch = jest
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          message: "successfully logged in",
+          accessToken: "signed-token",
+          userId: "user-1",
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          id: "user-1",
+          username: "abc123",
+          email: "a@example.com",
+          createdAt: "2026-01-01T00:00:00.000Z",
+        }),
+      }) as unknown as typeof fetch;
+
+    const result = await login("a@example.com", "longenough1");
+
+    expect(result).toEqual({
+      user: { id: "user-1", username: "abc123", email: "a@example.com" },
+      authToken: "signed-token",
+    });
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      1,
+      expect.stringContaining("/login"),
+      expect.objectContaining({
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: "a@example.com",
+          password: "longenough1",
+        }),
+      }),
+    );
+    expect(global.fetch).toHaveBeenNthCalledWith(
+      2,
+      expect.stringContaining("/users/user-1"),
+    );
+  });
+
+  it("throws with the server's error message on invalid credentials", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        error: {
+          code: "INVALID_CREDENTIALS",
+          message: "Email or password is incorrect.",
+        },
+      }),
+    }) as unknown as typeof fetch;
+
+    await expect(login("a@example.com", "wrongpassword")).rejects.toThrow(
+      "Email or password is incorrect.",
+    );
+  });
+
+  it("throws with the server's error message on missing fields", async () => {
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({
+        error: {
+          code: "VALIDATION_ERROR",
+          message: "Email and password are required.",
+        },
+      }),
+    }) as unknown as typeof fetch;
+
+    await expect(login("", "longenough1")).rejects.toThrow(
+      "Email and password are required.",
+    );
+  });
 });
 
 describe("signup", () => {

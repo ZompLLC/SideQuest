@@ -7,10 +7,10 @@
     "dev": "tsx watch server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "migrate": "dotenv -e .env.development -- node-pg-migrate",
+    "migrate": "dotenv -e .env -- node-pg-migrate",
     "lint": "eslint .",
-    "pretest": "dotenv -e .env.development -- node-pg-migrate up",
-    "test": "dotenv -e .env.development -- jest"
+    "pretest": "dotenv -e .env -- node-pg-migrate up",
+    "test": "dotenv -e .env -- jest"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

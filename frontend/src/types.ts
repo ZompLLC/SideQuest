@@ -53,7 +53,6 @@ export type ChallengesStackParamList = {
 export type MainTabParamList = {
   Home: undefined;
   Groups: undefined;
-  Leaderboard: undefined;
   Profile: undefined;
 };
 
