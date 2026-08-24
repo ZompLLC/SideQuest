@@ -13,11 +13,11 @@ export function useUserStats(userId: string | undefined): UseUserStatsResult {
 
   useEffect(() => {
     if (!userId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(false);
       return;
     }
     let ignore = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     getUserStats(userId)
       .then((data) => {
