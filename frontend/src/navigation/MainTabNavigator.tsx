@@ -7,7 +7,6 @@ import HomeScreen from "../screens/home/HomeScreen";
 import GroupsScreen from "../screens/groups/GroupsScreen";
 import GroupDetailScreen from "../screens/groups/GroupDetailScreen";
 import ChallengeDetailScreen from "../screens/challenges/ChallengeDetailScreen";
-import LeaderboardScreen from "../screens/leaderboard/LeaderboardScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import { colors } from "../theme";
 import { MainTabParamList, GroupsStackParamList } from "../types";
@@ -18,7 +17,6 @@ const GroupsStack = createNativeStackNavigator<GroupsStackParamList>();
 const ICONS: Record<keyof MainTabParamList, keyof typeof Ionicons.glyphMap> = {
   Home: "home",
   Groups: "flame",
-  Leaderboard: "trophy",
   Profile: "person",
 };
 // Groups gets its own stack so list -> detail -> challenge can push/pop
@@ -77,7 +75,6 @@ export default function MainTabNavigator() {
         component={GroupsStackNavigator}
         options={{ headerShown: false }}
       />
-      <Tab.Screen name="Leaderboard" component={LeaderboardScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );
