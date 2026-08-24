@@ -15,6 +15,7 @@ import type {
   updateQuest as UpdateQuestDbFn,
   deleteQuest as DeleteQuestDbFn,
   findGroupById as FindGroupByIdFn,
+  assignQuestToUsersInGroup as AssignQuestToUsersInGroupFn,
   pool as PoolType,
 } from "../../db.js";
 import type { app as AppType } from "../app.js";
@@ -38,6 +39,9 @@ describe("unit (mocked db)", () => {
   let mockedUpdateQuest: jest.MockedFunction<typeof UpdateQuestDbFn>;
   let mockedDeleteQuest: jest.MockedFunction<typeof DeleteQuestDbFn>;
   let mockedFindGroupById: jest.MockedFunction<typeof FindGroupByIdFn>;
+  let mockedAssignQuestToUsersInGroup: jest.MockedFunction<
+    typeof AssignQuestToUsersInGroupFn
+  >;
 
   beforeAll(() => {
     jest.resetModules();
@@ -48,10 +52,16 @@ describe("unit (mocked db)", () => {
       updateQuest: jest.fn(),
       deleteQuest: jest.fn(),
       findGroupById: jest.fn(),
+      assignQuestToUsersInGroup: jest.fn(),
     }));
 
-    ({ createQuest, listQuests, getQuest, updateQuest, deleteQuest } =
-      require("../handlers/quest.handler.js"));
+    ({
+      createQuest,
+      listQuests,
+      getQuest,
+      updateQuest,
+      deleteQuest,
+    } = require("../handlers/quest.handler.js"));
     const db = require("../../db.js");
 
     mockedCreateQuest = db.createQuest;
@@ -60,6 +70,7 @@ describe("unit (mocked db)", () => {
     mockedUpdateQuest = db.updateQuest;
     mockedDeleteQuest = db.deleteQuest;
     mockedFindGroupById = db.findGroupById;
+    mockedAssignQuestToUsersInGroup = db.assignQuestToUsersInGroup;
   });
 
   afterAll(() => {
@@ -128,7 +139,11 @@ describe("unit (mocked db)", () => {
     it("returns 404 GROUP_NOT_FOUND when the group doesn't exist", async () => {
       mockedFindGroupById.mockResolvedValue(undefined);
 
-      const req = createMockRequest(sampleQuestBody, { groupId: "group-1" }, "user-1");
+      const req = createMockRequest(
+        sampleQuestBody,
+        { groupId: "group-1" },
+        "user-1",
+      );
       const res = createMockResponse();
 
       await createQuest(req as Parameters<typeof createQuest>[0], res);
@@ -145,7 +160,11 @@ describe("unit (mocked db)", () => {
     it("returns 500 INTERNAL_ERROR when looking up the group fails", async () => {
       mockedFindGroupById.mockRejectedValue(new Error("connection lost"));
 
-      const req = createMockRequest(sampleQuestBody, { groupId: "group-1" }, "user-1");
+      const req = createMockRequest(
+        sampleQuestBody,
+        { groupId: "group-1" },
+        "user-1",
+      );
       const res = createMockResponse();
 
       await createQuest(req as Parameters<typeof createQuest>[0], res);
@@ -162,7 +181,11 @@ describe("unit (mocked db)", () => {
       mockedFindGroupById.mockResolvedValue(sampleGroup());
       mockedCreateQuest.mockRejectedValue(new Error("connection lost"));
 
-      const req = createMockRequest(sampleQuestBody, { groupId: "group-1" }, "user-1");
+      const req = createMockRequest(
+        sampleQuestBody,
+        { groupId: "group-1" },
+        "user-1",
+      );
       const res = createMockResponse();
 
       await createQuest(req as Parameters<typeof createQuest>[0], res);
@@ -187,12 +210,21 @@ describe("unit (mocked db)", () => {
         dueAt: sampleQuestBody.dueAt,
         createdAt: new Date().toISOString(),
       });
+      mockedAssignQuestToUsersInGroup.mockResolvedValue(1);
 
-      const req = createMockRequest(sampleQuestBody, { groupId: "group-1" }, "user-1");
+      const req = createMockRequest(
+        sampleQuestBody,
+        { groupId: "group-1" },
+        "user-1",
+      );
       const res = createMockResponse();
 
       await createQuest(req as Parameters<typeof createQuest>[0], res);
-
+      expect(mockedAssignQuestToUsersInGroup).toHaveBeenCalledWith(
+        expect.any(String),
+        "user-1",
+        "group-1",
+      );
       expect(mockedCreateQuest).toHaveBeenCalledWith(
         expect.any(String),
         "group-1",
@@ -252,7 +284,10 @@ describe("unit (mocked db)", () => {
 
       await listQuests(req as Parameters<typeof listQuests>[0], res);
 
-      expect(mockedListQuestsByGroup).toHaveBeenCalledWith("group-1", undefined);
+      expect(mockedListQuestsByGroup).toHaveBeenCalledWith(
+        "group-1",
+        undefined,
+      );
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith([
         expect.objectContaining({ id: "quest-1", title: "5K Run" }),
@@ -298,7 +333,9 @@ describe("unit (mocked db)", () => {
     });
 
     it("returns 404 QUEST_NOT_FOUND when the quest belongs to a different group", async () => {
-      mockedFindQuestById.mockResolvedValue(sampleQuest({ groupId: "other-group" }));
+      mockedFindQuestById.mockResolvedValue(
+        sampleQuest({ groupId: "other-group" }),
+      );
 
       const req = createMockRequest(
         {},
@@ -383,7 +420,9 @@ describe("unit (mocked db)", () => {
     });
 
     it("returns 404 QUEST_NOT_FOUND when the quest belongs to a different group", async () => {
-      mockedFindQuestById.mockResolvedValue(sampleQuest({ groupId: "other-group" }));
+      mockedFindQuestById.mockResolvedValue(
+        sampleQuest({ groupId: "other-group" }),
+      );
 
       const req = updateRequest({ title: "New title" });
       const res = createMockResponse();
@@ -399,7 +438,9 @@ describe("unit (mocked db)", () => {
     });
 
     it("returns 403 NOT_QUEST_OWNER when the requester isn't the creator", async () => {
-      mockedFindQuestById.mockResolvedValue(sampleQuest({ creatorId: "user-1" }));
+      mockedFindQuestById.mockResolvedValue(
+        sampleQuest({ creatorId: "user-1" }),
+      );
 
       const req = updateRequest({ title: "New title" }, "someone-else");
       const res = createMockResponse();
@@ -416,7 +457,9 @@ describe("unit (mocked db)", () => {
     });
 
     it("returns 500 INTERNAL_ERROR when the db fails to update", async () => {
-      mockedFindQuestById.mockResolvedValue(sampleQuest({ creatorId: "user-1" }));
+      mockedFindQuestById.mockResolvedValue(
+        sampleQuest({ creatorId: "user-1" }),
+      );
       mockedUpdateQuest.mockRejectedValue(new Error("connection lost"));
 
       const req = updateRequest({ title: "New title" });
@@ -433,7 +476,9 @@ describe("unit (mocked db)", () => {
     });
 
     it("returns 200 with the updated quest on success", async () => {
-      mockedFindQuestById.mockResolvedValue(sampleQuest({ creatorId: "user-1" }));
+      mockedFindQuestById.mockResolvedValue(
+        sampleQuest({ creatorId: "user-1" }),
+      );
       mockedUpdateQuest.mockResolvedValue({ title: "New title" });
 
       const req = updateRequest({ title: "New title" });
@@ -479,7 +524,9 @@ describe("unit (mocked db)", () => {
     });
 
     it("returns 403 NOT_QUEST_OWNER when the requester isn't the creator", async () => {
-      mockedFindQuestById.mockResolvedValue(sampleQuest({ creatorId: "user-1" }));
+      mockedFindQuestById.mockResolvedValue(
+        sampleQuest({ creatorId: "user-1" }),
+      );
 
       const req = deleteRequest("someone-else");
       const res = createMockResponse();
@@ -496,7 +543,9 @@ describe("unit (mocked db)", () => {
     });
 
     it("returns 500 INTERNAL_ERROR when the db fails to delete", async () => {
-      mockedFindQuestById.mockResolvedValue(sampleQuest({ creatorId: "user-1" }));
+      mockedFindQuestById.mockResolvedValue(
+        sampleQuest({ creatorId: "user-1" }),
+      );
       mockedDeleteQuest.mockRejectedValue(new Error("connection lost"));
 
       const req = deleteRequest();
@@ -513,7 +562,9 @@ describe("unit (mocked db)", () => {
     });
 
     it("returns 200 on success", async () => {
-      mockedFindQuestById.mockResolvedValue(sampleQuest({ creatorId: "user-1" }));
+      mockedFindQuestById.mockResolvedValue(
+        sampleQuest({ creatorId: "user-1" }),
+      );
       mockedDeleteQuest.mockResolvedValue(true);
 
       const req = deleteRequest();
@@ -584,7 +635,10 @@ describe("integration (real Postgres)", () => {
     createdEmails.push(user.email);
 
     const res = await request(app).post("/register").send(user).expect(201);
-    return { userId: res.body.id as string, token: res.body.authToken as string };
+    return {
+      userId: res.body.id as string,
+      token: res.body.authToken as string,
+    };
   }
 
   async function createGroupFixture(token: string) {
@@ -833,10 +887,9 @@ describe("integration (real Postgres)", () => {
 
       expect(res.status).toBe(200);
 
-      const { rows } = await pool.query(
-        "SELECT id FROM quests WHERE id = $1",
-        [questId],
-      );
+      const { rows } = await pool.query("SELECT id FROM quests WHERE id = $1", [
+        questId,
+      ]);
       expect(rows).toHaveLength(0);
     });
 
