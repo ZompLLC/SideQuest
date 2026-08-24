@@ -216,6 +216,33 @@ describe("unit (mocked db)", () => {
       expect(mockedFindUserCredentialsById).not.toHaveBeenCalled();
     });
 
+    it("ignores the old newEmail field name -- email is left untouched", async () => {
+      mockedUpdateUserFields.mockResolvedValue({
+        id: "user-1",
+        email: "original@example.com",
+        username: "newname",
+        createdAt: new Date().toISOString(),
+      });
+
+      const req = updateUserRequest("user-1", {
+        username: "newname",
+        newEmail: "attacker@example.com",
+      });
+      const res = createMockResponse();
+
+      await updateUser(req as Parameters<typeof updateUser>[0], res);
+
+      // newEmail isn't a field the handler reads at all, so it never
+      // triggers the currentPassword requirement or reaches updateUserFields.
+      expect(mockedFindUserCredentialsById).not.toHaveBeenCalled();
+      expect(mockedUpdateUserFields).toHaveBeenCalledWith("user-1", {
+        username: "newname",
+        passwordHash: undefined,
+        email: undefined,
+      });
+      expect(res.status).toHaveBeenCalledWith(200);
+    });
+
     it("returns 400 VALIDATION_ERROR when newPassword is given without currentPassword", async () => {
       const req = updateUserRequest("user-1", {
         newPassword: "brand-new-password-1",
@@ -627,6 +654,32 @@ describe("integration (real Postgres)", () => {
         [user.id],
       );
       expect(rows[0]).toMatchObject({ email: newEmail });
+    });
+
+    it("leaves the email unchanged when only the old newEmail field name is sent", async () => {
+      const user = await registerUser();
+      const newUsername = `updated_${randomUUID().slice(0, 8)}`;
+
+      const res = await request(app)
+        .patch(`/users/${user.id}`)
+        .set("Authorization", `Bearer ${user.token}`)
+        .send({
+          username: newUsername,
+          newEmail: "should-not-apply@sidequest.test",
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body).toMatchObject({
+        id: user.id,
+        username: newUsername,
+        email: user.email,
+      });
+
+      const { rows } = await pool.query(
+        "SELECT email FROM users WHERE id = $1",
+        [user.id],
+      );
+      expect(rows[0]).toMatchObject({ email: user.email });
     });
 
     it("updates username, password, and email together in one request", async () => {
