@@ -1,4 +1,4 @@
-import { User } from "../types";
+import { User, UserStats } from "../types";
 
 const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL;
 
@@ -10,6 +10,14 @@ export async function getUser(userId: string): Promise<User> {
 
   const { id, username, email } = data;
   return { id, username, email };
+}
+
+export async function getUserStats(userId: string): Promise<UserStats> {
+  const res = await fetch(`http://${SERVER_URL}/users/${userId}/stats`);
+
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error?.message ?? "Failed to fetch stats");
+  return data;
 }
 
 export interface UpdateUserPayload {

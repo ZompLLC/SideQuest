@@ -37,6 +37,19 @@ export interface LeaderboardEntry {
   points: number;
 }
 
+export interface UserStats {
+  currentStreak: number;
+  completionRate: number;
+  totalPointsAllTime: number;
+  badges: string[];
+  seasonHistory: {
+    seasonId: string;
+    groupId: string;
+    placement: number;
+    points: number;
+  }[];
+}
+
 // --- Navigation param lists ---
 // Typing these means navigation.navigate('X', params) and
 // route.params are both type-checked and autocompleted.
