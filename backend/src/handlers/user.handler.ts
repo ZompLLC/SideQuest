@@ -46,14 +46,14 @@ export async function getUser(
 
 // PATCH /users/:userId
 // Auth: requester must be updating their own account. Accepts any subset
-// of username/newPassword/newEmail in one request; currentPassword is
-// required whenever newPassword or newEmail is present.
+// of username/newPassword/email in one request; currentPassword is
+// required whenever newPassword or email is present.
 export async function updateUser(
   req: Request<{ userId: string }, Record<string, never>, UpdateUserRequestModel>,
   res: Response,
 ): Promise<void> {
   const { userId } = req.params;
-  const { username, currentPassword, newPassword, newEmail } = req.body;
+  const { username, currentPassword, newPassword, email } = req.body;
 
   req.log.info("updateUser: request received", { userId });
 
@@ -69,14 +69,14 @@ export async function updateUser(
     return;
   }
 
-  if (username === undefined && newPassword === undefined && newEmail === undefined) {
+  if (username === undefined && newPassword === undefined && email === undefined) {
     req.log.info("updateUser: validation failed, nothing to update", {
       userId,
     });
     sendError(
       res,
       CommonErrors.missingField(
-        "At least one of username, newPassword, or newEmail is required.",
+        "At least one of username, newPassword, or email is required.",
       ),
     );
     return;
@@ -103,16 +103,16 @@ export async function updateUser(
     return;
   }
 
-  if (newEmail !== undefined && !EMAIL_REGEX.test(newEmail)) {
+  if (email !== undefined && !EMAIL_REGEX.test(email)) {
     req.log.info("updateUser: validation failed, bad email format", {
       userId,
     });
-    sendError(res, AuthErrors.invalidEmailFormat(newEmail));
+    sendError(res, AuthErrors.invalidEmailFormat(email));
     return;
   }
 
   let passwordHash: string | undefined;
-  if (newPassword !== undefined || newEmail !== undefined) {
+  if (newPassword !== undefined || email !== undefined) {
     if (!currentPassword) {
       req.log.info("updateUser: validation failed, missing current password", {
         userId,
@@ -160,7 +160,7 @@ export async function updateUser(
     const user = await updateUserFields(userId, {
       username,
       passwordHash,
-      email: newEmail,
+      email,
     });
     if (!user) {
       req.log.info("updateUser: no matching user", { userId });
@@ -177,7 +177,7 @@ export async function updateUser(
     }
     if (err instanceof DuplicateUserError) {
       req.log.info("updateUser: email already in use", { userId });
-      sendError(res, AuthErrors.emailAlreadyExists(newEmail!));
+      sendError(res, AuthErrors.emailAlreadyExists(email!));
       return;
     }
     req.log.info("updateUser: failed to update user", { userId, err });

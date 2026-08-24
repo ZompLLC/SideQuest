@@ -16,12 +16,12 @@ export interface UpdateUserPayload {
   username?: string;
   currentPassword?: string;
   newPassword?: string;
-  newEmail?: string;
+  email?: string;
 }
 
-// Single combined endpoint -- any subset of username/newPassword/newEmail
+// Single combined endpoint -- any subset of username/newPassword/email
 // can be set in one call; currentPassword is required whenever newPassword
-// or newEmail is present. Always requires auth now, including username-only
+// or email is present. Always requires auth now, including username-only
 // changes (the backend used to allow that without a token).
 export async function updateUser(
   userId: string,

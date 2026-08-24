@@ -19,8 +19,8 @@ import bcrypt from "bcrypt";
 
 // Covers GET /users/:userId, PATCH /users/:userId, and GET /users/:userId/stats
 // (user.handler.ts). PATCH /users/:userId is a single combined endpoint --
-// any subset of username/newPassword/newEmail can be set in one request,
-// with currentPassword required whenever newPassword or newEmail is
+// any subset of username/newPassword/email can be set in one request,
+// with currentPassword required whenever newPassword or email is
 // present. Same structure as auth.test.ts: the unit suite mocks db.js so it
 // never touches Postgres, and jest.mock() applies to this whole file's
 // module registry -- not just one describe block -- so the integration
@@ -202,7 +202,7 @@ describe("unit (mocked db)", () => {
     });
 
     it("returns 400 INVALID_EMAIL_FORMAT for a malformed email", async () => {
-      const req = updateUserRequest("user-1", { newEmail: "not-an-email" });
+      const req = updateUserRequest("user-1", { email: "not-an-email" });
       const res = createMockResponse();
 
       await updateUser(req as Parameters<typeof updateUser>[0], res);
@@ -324,7 +324,7 @@ describe("unit (mocked db)", () => {
 
       const req = updateUserRequest("user-1", {
         currentPassword: "actual-password-1",
-        newEmail: "taken@example.com",
+        email: "taken@example.com",
       });
       const res = createMockResponse();
 
@@ -427,7 +427,7 @@ describe("unit (mocked db)", () => {
 
       const req = updateUserRequest("user-1", {
         currentPassword: "actual-password-1",
-        newEmail: "new@example.com",
+        email: "new@example.com",
       });
       const res = createMockResponse();
 
@@ -462,7 +462,7 @@ describe("unit (mocked db)", () => {
         username: "newname",
         currentPassword: "actual-password-1",
         newPassword: "brand-new-password-1",
-        newEmail: "new@example.com",
+        email: "new@example.com",
       });
       const res = createMockResponse();
 
@@ -617,7 +617,7 @@ describe("integration (real Postgres)", () => {
       const res = await request(app)
         .patch(`/users/${user.id}`)
         .set("Authorization", `Bearer ${user.token}`)
-        .send({ currentPassword: user.password, newEmail });
+        .send({ currentPassword: user.password, email: newEmail });
 
       expect(res.status).toBe(200);
       expect(res.body).toMatchObject({ id: user.id, email: newEmail });
@@ -643,7 +643,7 @@ describe("integration (real Postgres)", () => {
           username: newUsername,
           currentPassword: user.password,
           newPassword,
-          newEmail,
+          email: newEmail,
         });
 
       expect(res.status).toBe(200);
@@ -714,7 +714,7 @@ describe("integration (real Postgres)", () => {
       const res = await request(app)
         .patch(`/users/${user.id}`)
         .set("Authorization", `Bearer ${user.token}`)
-        .send({ currentPassword: user.password, newEmail: "not-an-email" });
+        .send({ currentPassword: user.password, email: "not-an-email" });
 
       expect(res.status).toBe(400);
       expect(res.body.error.code).toBe("INVALID_EMAIL_FORMAT");
@@ -754,7 +754,7 @@ describe("integration (real Postgres)", () => {
       const res = await request(app)
         .patch(`/users/${userA.id}`)
         .set("Authorization", `Bearer ${userA.token}`)
-        .send({ currentPassword: userA.password, newEmail: userB.email });
+        .send({ currentPassword: userA.password, email: userB.email });
 
       expect(res.status).toBe(409);
       expect(res.body.error.code).toBe("EMAIL_ALREADY_EXISTS");

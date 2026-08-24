@@ -131,7 +131,7 @@ export function useAuth(): UseAuthResult {
     try {
       const updated = await apiUpdateUser(
         user.id,
-        { currentPassword, newEmail },
+        { currentPassword, email: newEmail },
         token,
       );
       setUser(updated);
