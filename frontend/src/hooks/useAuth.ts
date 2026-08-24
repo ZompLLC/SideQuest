@@ -34,8 +34,9 @@ export function useAuth(): UseAuthResult {
     setLoading(true);
     setError(null);
     try {
-      const user = await apiLogin(email, password);
+      const { user, authToken } = await apiLogin(email, password);
       setUser(user);
+      setToken(authToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
