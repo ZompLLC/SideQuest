@@ -14,6 +14,6 @@ checkDbConnection()
     });
   })
   .catch((err) => {
-    winstonLogger.error("Failed to connect to the database", { err });
+    winstonLogger.info("Failed to connect to the database", { err });
     process.exit(1);
   });

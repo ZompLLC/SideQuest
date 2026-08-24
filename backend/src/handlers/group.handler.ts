@@ -6,6 +6,7 @@ import {
   updateGroup as dbUpdateGroup,
   deleteGroup as dbDeleteGroup,
   addUserToGroup,
+  listGroupsForUser,
 } from "../../db.js";
 import { sendError } from "../errors/errors.js";
 import { GroupErrors } from "../errors/group.errors";
@@ -14,6 +15,7 @@ import {
   CreateGroupRequestModel,
   CreateGroupResponseModel,
   GetGroupResponseModel,
+  ListGroupsResponseModel,
   UpdateGroupRequesteModel,
   UpdateGroupResponseModel,
 } from "../models/group.model.js";
@@ -35,7 +37,7 @@ export async function createGroup(
 
   const missing = requireFields(req.body, ["name"]);
   if (missing) {
-    req.log.warn("createGroup: validation failed, missing required fields");
+    req.log.info("createGroup: validation failed, missing required fields");
     sendError(res, CommonErrors.missingField());
     return;
   }
@@ -62,7 +64,32 @@ export async function createGroup(
     });
     res.status(201).json(group);
   } catch (err) {
-    req.log.error("createGroup: failed to create group", { err });
+    req.log.info("createGroup: failed to create group", { err });
+    sendError(res, CommonErrors.internalError());
+  }
+}
+
+// GET /groups
+export async function listGroups(
+  req: Request,
+  res: Response<ListGroupsResponseModel>,
+): Promise<void> {
+  const userId = req.userId!;
+
+  req.log.info("listGroups: request received", { userId });
+
+  try {
+    const groups = await listGroupsForUser(userId);
+    res.status(200).json(
+      groups.map(({ id, name, memberCount, seasonLength }) => ({
+        id,
+        name,
+        memberCount,
+        seasonLength,
+      })),
+    );
+  } catch (err) {
+    req.log.info("listGroups: failed to list groups", { err, userId });
     sendError(res, CommonErrors.internalError());
   }
 }
@@ -80,13 +107,13 @@ export async function getGroup(
   try {
     group = await findGroupById(groupId);
   } catch (err) {
-    req.log.error("getGroup: failed to look up group", { err, groupId });
+    req.log.info("getGroup: failed to look up group", { err, groupId });
     sendError(res, CommonErrors.internalError());
     return;
   }
 
   if (!group) {
-    req.log.warn("getGroup: group not found", { groupId });
+    req.log.info("getGroup: group not found", { groupId });
     sendError(res, GroupErrors.groupNotFound(groupId));
     return;
   }
@@ -107,7 +134,7 @@ export async function updateGroup(
 
   const userId = "aeca1f42-a965-415f-9f81-4dec0a76e14";
   if (!userId) {
-    req.log.warn("updateGroup: no authenticated user on request");
+    req.log.info("updateGroup: no authenticated user on request");
     sendError(res, CommonErrors.internalError());
     return;
   }
@@ -116,19 +143,19 @@ export async function updateGroup(
   try {
     group = await findGroupById(groupId);
   } catch (err) {
-    req.log.error("updateGroup: failed to look up group", { err, groupId });
+    req.log.info("updateGroup: failed to look up group", { err, groupId });
     sendError(res, CommonErrors.internalError());
     return;
   }
 
   if (!group) {
-    req.log.warn("updateGroup: group not found", { groupId });
+    req.log.info("updateGroup: group not found", { groupId });
     sendError(res, GroupErrors.groupNotFound(groupId));
     return;
   }
 
   if (group.ownerId !== userId) {
-    req.log.warn("updateGroup: forbidden, not group owner", {
+    req.log.info("updateGroup: forbidden, not group owner", {
       groupId,
       userId,
     });
@@ -141,7 +168,7 @@ export async function updateGroup(
     req.log.info("updateGroup: group updated successfully", { groupId });
     res.status(200).json(updated!);
   } catch (err) {
-    req.log.error("updateGroup: failed to update group", { err, groupId });
+    req.log.info("updateGroup: failed to update group", { err, groupId });
     sendError(res, CommonErrors.internalError());
   }
 }
@@ -157,7 +184,7 @@ export async function deleteGroup(
 
   const userId = "aeca1f42-a965-415f-9f81-4dec0a76e14";
   if (!userId) {
-    req.log.warn("deleteGroup: no authenticated user on request");
+    req.log.info("deleteGroup: no authenticated user on request");
     sendError(res, CommonErrors.internalError());
     return;
   }
@@ -166,19 +193,19 @@ export async function deleteGroup(
   try {
     group = await findGroupById(groupId);
   } catch (err) {
-    req.log.error("deleteGroup: failed to look up group", { err, groupId });
+    req.log.info("deleteGroup: failed to look up group", { err, groupId });
     sendError(res, CommonErrors.internalError());
     return;
   }
 
   if (!group) {
-    req.log.warn("deleteGroup: group not found", { groupId });
+    req.log.info("deleteGroup: group not found", { groupId });
     sendError(res, GroupErrors.groupNotFound(groupId));
     return;
   }
 
   if (group.ownerId !== userId) {
-    req.log.warn("deleteGroup: forbidden, not group owner", {
+    req.log.info("deleteGroup: forbidden, not group owner", {
       groupId,
       userId,
     });
@@ -191,7 +218,7 @@ export async function deleteGroup(
     req.log.info("deleteGroup: group deleted successfully", { groupId });
     res.status(200).json({ message: "group successfully deleted" });
   } catch (err) {
-    req.log.error("deleteGroup: failed to delete group", { err, groupId });
+    req.log.info("deleteGroup: failed to delete group", { err, groupId });
     sendError(res, CommonErrors.internalError());
   }
 }

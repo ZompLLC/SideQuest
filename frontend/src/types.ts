@@ -23,10 +23,12 @@ export interface User {
 export interface Group {
   id: string;
   name: string;
-  ownerId: string;
-  inviteCode: string;
   memberCount: number;
   seasonLength: number;
+  // Not present on GET /groups (list) -- only on GET /groups/:id.
+  ownerId?: string;
+  // Only present in the POST /groups (create) response -- omitted elsewhere.
+  inviteCode?: string;
 }
 
 export interface LeaderboardEntry {

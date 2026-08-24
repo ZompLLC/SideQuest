@@ -60,7 +60,9 @@ export default function GroupDetailScreen({ route, navigation }: Props) {
           <Text style={styles.meta}>
             {group.memberCount} members · {group.seasonLength}-day season
           </Text>
-          <Text style={styles.inviteCode}>Invite code: {group.inviteCode}</Text>
+          {group.inviteCode && (
+            <Text style={styles.inviteCode}>Invite code: {group.inviteCode}</Text>
+          )}
         </View>
 
         <Text style={styles.sectionLabel}>Leaderboard</Text>
