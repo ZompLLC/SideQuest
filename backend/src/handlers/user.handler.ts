@@ -12,8 +12,8 @@ import { UserErrors } from "../errors/user.errors";
 import { AuthErrors } from "../errors/auth.errors";
 import { CommonErrors } from "../errors/common.errors";
 import { UpdateUserRequestModel, UserStatsModel } from "../models/user.model.js";
+import { PASSWORD_SALT_ROUNDS } from "./auth.handler.js";
 
-const PASSWORD_SALT_ROUNDS = 10;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // GET /users/:userId
