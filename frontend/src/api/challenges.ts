@@ -1,4 +1,5 @@
 import { Challenge } from "../types";
+import { listGroups } from "./groups";
 
 // Dummy data standing in for what apps/backend will eventually return.
 // Function signatures/types here are the "contract" — hooks/screens
@@ -79,10 +80,15 @@ function fakeDelay(ms = 500): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export async function getChallenges(): Promise<Challenge[]> {
-  await fakeDelay();
-  return MOCK_CHALLENGES;
-  // Later: return fetch(`${API_URL}/challenges`).then((r) => r.json());
+// There's no single "all challenges" endpoint on the backend -- quests are
+// scoped to a group -- so this fetches the user's real groups first, then
+// the challenges in each of them.
+export async function getChallenges(token: string): Promise<Challenge[]> {
+  const groups = await listGroups(token);
+  const perGroupChallenges = await Promise.all(
+    groups.map((group) => getChallengesByGroup(group.id)),
+  );
+  return perGroupChallenges.flat();
 }
 
 export async function getChallengeById(id: string): Promise<Challenge> {
@@ -126,10 +132,32 @@ export async function createChallenge(
   */
 }
 
+// GET /groups/:groupId/quests only returns partial records (id, creatorId,
+// title, pointValue -- see ListQuestsResponseModel on the backend), so the
+// fields it doesn't carry (status, description, dueAt, opponent) are filled
+// in with placeholders here rather than fetched per-quest.
 export async function getChallengesByGroup(
   groupId: string,
 ): Promise<Challenge[]> {
-  await fakeDelay();
-  return MOCK_CHALLENGES.filter((c) => c.groupId === groupId);
-  // Later: return fetch(`${API_URL}/groups/${groupId}/challenges`).then((r) => r.json());
+  const res = await fetch(`http://${SERVER_URL}/groups/${groupId}/quests`);
+  const quests: Array<{
+    id: string;
+    creatorId: string;
+    title: string;
+    pointValue: number;
+  }> = await res.json();
+  if (!res.ok)
+    throw new Error("Failed to load challenges for group " + groupId);
+
+  return quests.map((q) => ({
+    id: q.id,
+    title: q.title,
+    challenger: q.creatorId,
+    opponent: "",
+    pointValue: q.pointValue,
+    status: "pending",
+    groupId,
+    description: "",
+    dueAt: new Date(),
+  }));
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Text,
   View,
@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 import { colors, spacing } from "../../theme";
 import { getGroupById } from "../../api/groups";
 import { getChallengesByGroup } from "../../api/challenges";
@@ -41,6 +42,20 @@ export default function GroupDetailScreen({ route, navigation }: Props) {
       mounted = false;
     };
   }, [id]);
+
+  // Refetch challenges whenever this screen regains focus (e.g. coming back
+  // from CreateChallenge), since it stays mounted across that navigation.
+  useFocusEffect(
+    useCallback(() => {
+      let mounted = true;
+      getChallengesByGroup(id).then((challengeData) => {
+        if (mounted) setChallenges(challengeData);
+      });
+      return () => {
+        mounted = false;
+      };
+    }, [id]),
+  );
 
   // If we arrived here on the way to a specific challenge (e.g. tapped
   // straight from Home), push into it so back returns here.

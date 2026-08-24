@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getChallenges } from '../api/challenges';
+import { useTokenStore } from '../store/tokenStore';
 import { Challenge } from '../types';
 
 interface UseChallengesResult {
@@ -10,17 +11,24 @@ interface UseChallengesResult {
 }
 
 export function useChallenges(): UseChallengesResult {
+  const token = useTokenStore((s) => s.token);
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [refetchIndex, setRefetchIndex] = useState(0);
 
   useEffect(() => {
+    if (!token) {
+      setChallenges([]);
+      setLoading(false);
+      return;
+    }
+
     let ignore = false;
     // Resets the loading flag for each new fetch (initial mount and refetch).
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    getChallenges()
+    getChallenges(token)
       .then((data) => {
         if (!ignore) setChallenges(data);
       })
@@ -33,7 +41,7 @@ export function useChallenges(): UseChallengesResult {
     return () => {
       ignore = true;
     };
-  }, [refetchIndex]);
+  }, [token, refetchIndex]);
 
   const refetch = useCallback(() => {
     setRefetchIndex((i) => i + 1);

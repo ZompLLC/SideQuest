@@ -385,7 +385,12 @@ export async function listQuestsByGroup(
         `SELECT id, creator_id, title, point_value FROM quests WHERE group_id = $1 ORDER BY created_at DESC`,
         [groupId],
       );
-  return result.rows;
+  return result.rows.map((row) => ({
+    id: row.id,
+    creatorId: row.creator_id,
+    title: row.title,
+    pointValue: row.point_value,
+  }));
 }
 
 export async function findQuestById(
