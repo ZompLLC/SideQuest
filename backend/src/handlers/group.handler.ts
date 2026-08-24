@@ -6,6 +6,7 @@ import {
   updateGroup as dbUpdateGroup,
   deleteGroup as dbDeleteGroup,
   addUserToGroup,
+  listGroupsForUser,
 } from "../../db.js";
 import { sendError } from "../errors/errors.js";
 import { GroupErrors } from "../errors/group.errors";
@@ -14,6 +15,7 @@ import {
   CreateGroupRequestModel,
   CreateGroupResponseModel,
   GetGroupResponseModel,
+  ListGroupsResponseModel,
   UpdateGroupRequesteModel,
   UpdateGroupResponseModel,
 } from "../models/group.model.js";
@@ -63,6 +65,31 @@ export async function createGroup(
     res.status(201).json(group);
   } catch (err) {
     req.log.error("createGroup: failed to create group", { err });
+    sendError(res, CommonErrors.internalError());
+  }
+}
+
+// GET /groups
+export async function listGroups(
+  req: Request,
+  res: Response<ListGroupsResponseModel>,
+): Promise<void> {
+  const userId = req.userId!;
+
+  req.log.info("listGroups: request received", { userId });
+
+  try {
+    const groups = await listGroupsForUser(userId);
+    res.status(200).json(
+      groups.map(({ id, name, memberCount, seasonLength }) => ({
+        id,
+        name,
+        memberCount,
+        seasonLength,
+      })),
+    );
+  } catch (err) {
+    req.log.error("listGroups: failed to list groups", { err, userId });
     sendError(res, CommonErrors.internalError());
   }
 }

@@ -23,7 +23,7 @@ export type CreateGroupResponseModel = Omit<GroupModel, memberCountField>;
 
 // List Groups
 export type ListGroupsResponseModel = Array<
-  Pick<GroupModel, idField | nameField | memberCountField>
+  Pick<GroupModel, idField | nameField | memberCountField | seasonLengthField>
 >;
 
 // Get Group
