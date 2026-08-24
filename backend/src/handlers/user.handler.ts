@@ -26,13 +26,13 @@ export async function getUser(
   try {
     user = await findUserById(userId);
   } catch (err) {
-    req.log.error("getUser: failed to look up user", { userId, err });
+    req.log.info("getUser: failed to look up user", { userId, err });
     sendError(res, CommonErrors.internalError());
     return;
   }
 
   if (!user) {
-    req.log.warn("getUser: no matching user", { userId });
+    req.log.info("getUser: no matching user", { userId });
     sendError(res, UserErrors.userNotFound());
     return;
   }
@@ -52,7 +52,7 @@ export async function updateUser(
   req.log.info("updateUser: request received", { userId });
 
   if (!username || username.length < 3 || username.length > 20) {
-    req.log.warn("updateUser: validation failed, bad username", { userId });
+    req.log.info("updateUser: validation failed, bad username", { userId });
     sendError(
       res,
       CommonErrors.validationError(
@@ -66,7 +66,7 @@ export async function updateUser(
   try {
     const user = await updateUsername(userId, username);
     if (!user) {
-      req.log.warn("updateUser: no matching user", { userId });
+      req.log.info("updateUser: no matching user", { userId });
       sendError(res, UserErrors.userNotFound());
       return;
     }
@@ -74,11 +74,11 @@ export async function updateUser(
     res.status(200).json(user);
   } catch (err) {
     if (err instanceof DuplicateUsernameError) {
-      req.log.warn("updateUser: username taken", { userId, username });
+      req.log.info("updateUser: username taken", { userId, username });
       sendError(res, UserErrors.usernameTaken(err.message));
       return;
     }
-    req.log.error("updateUser: failed to update user", { userId, err });
+    req.log.info("updateUser: failed to update user", { userId, err });
     sendError(res, CommonErrors.internalError());
     return;
   }
