@@ -30,23 +30,40 @@ export function useGroups(): UseGroupsResult {
   const [createError, setCreateError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) {
-      setLoading(false);
-      return;
-    }
     let ignore = false;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-    Promise.all([getGroups(), listGroups(token)])
-      .then(([mockGroups, realGroups]) => {
-        if (!ignore) setGroups([...mockGroups, ...realGroups]);
+
+    // Mock groups always load, independent of auth/backend state, so a
+    // missing token or an unreachable backend can't hide them. Real groups
+    // are layered on top when available.
+    getGroups()
+      .then((mockGroups) => {
+        if (ignore) return;
+        setGroups(mockGroups);
+
+        if (!token) {
+          setLoading(false);
+          return;
+        }
+        listGroups(token)
+          .then((realGroups) => {
+            if (!ignore) setGroups([...mockGroups, ...realGroups]);
+          })
+          .catch((err) => {
+            if (!ignore) setError(err);
+          })
+          .finally(() => {
+            if (!ignore) setLoading(false);
+          });
       })
       .catch((err) => {
-        if (!ignore) setError(err);
-      })
-      .finally(() => {
-        if (!ignore) setLoading(false);
+        if (!ignore) {
+          setError(err);
+          setLoading(false);
+        }
       });
+
     return () => {
       ignore = true;
     };
