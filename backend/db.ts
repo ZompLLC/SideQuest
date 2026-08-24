@@ -1,4 +1,12 @@
 import { DatabaseError, Pool } from "pg";
+import {
+  CreateQuestRequestModel,
+  CreateQuestResponseModel,
+  GetQuestResponseModel,
+  ListQuestsResponseModel,
+  QuestModel,
+  UpdateQuestRequestModel,
+} from "./src/models/quest.model";
 
 export const pool = new Pool({
   host: process.env.DATABASE_HOST,
@@ -264,5 +272,111 @@ export async function updateGroup(
 
 export async function deleteGroup(id: string): Promise<boolean> {
   const result = await pool.query(`DELETE FROM groups WHERE id = $1`, [id]);
+  return (result.rowCount ?? 0) > 0;
+}
+
+// --- Quest queries ---
+
+export async function createQuest(
+  id: string,
+  groupId: string,
+  creatorId: string,
+  quest: CreateQuestRequestModel,
+): Promise<CreateQuestResponseModel> {
+  const { title, description, pointValue, dueAt } = quest;
+
+  // TODO NEED STANDARDIZED STATUS
+  const result = await pool.query(
+    `INSERT INTO quests
+       (id, group_id, creator_id, title, description, point_value, status, due_at)
+     VALUES ($1, $2, $3, $4, $5, $6, 'open', $7)
+     RETURNING id, group_id, creator_id, title, description, point_value, due_at, created_at`,
+    [id, groupId, creatorId, title, description, pointValue, dueAt],
+  );
+  const row = result.rows[0];
+  return {
+    id: row.id,
+    groupId: row.group_id,
+    creatorId: row.creator_id,
+    title: row.title,
+    description: row.description,
+    pointValue: row.point_value,
+    dueAt: row.due_at.toISOString(),
+    createdAt: row.created_at.toISOString(),
+  };
+}
+
+export async function listQuestsByGroup(
+  groupId: string,
+  status?: string,
+): Promise<ListQuestsResponseModel> {
+  //TODO implement better status query buidling
+  const result = status
+    ? await pool.query(
+        `SELECT id, creator_id, title, point_value FROM quests WHERE group_id = $1 AND status = $2 ORDER BY created_at DESC`,
+        [groupId, status],
+      )
+    : await pool.query(
+        `SELECT id, creator_id, title, point_value FROM quests WHERE group_id = $1 ORDER BY created_at DESC`,
+        [groupId],
+      );
+  return result.rows;
+}
+
+export async function findQuestById(
+  questId: string,
+): Promise<GetQuestResponseModel | null> {
+  const result = await pool.query(
+    `SELECT id, group_id, creator_id, title, description, point_value, status, due_at, completed_at, created_at
+     FROM quests WHERE id = $1`,
+    [questId],
+  );
+
+  const row = result.rows[0];
+  if (!row) return null;
+  return {
+    id: row.id,
+    groupId: row.group_id,
+    creatorId: row.creator_id,
+    title: row.title,
+    description: row.description,
+    status: row.status,
+    pointValue: row.point_value,
+    dueAt: row.due_at.toISOString(),
+    createdAt: row.created_at.toISOString(),
+  };
+}
+
+export async function updateQuest(
+  questId: string,
+  fields: Partial<
+    Pick<
+      QuestModel,
+      "title" | "description" | "pointValue" | "status" | "dueAt"
+    >
+  >,
+): Promise<UpdateQuestRequestModel | null> {
+  const { title, description, pointValue, status, dueAt } = fields;
+
+  const result = await pool.query(
+    `UPDATE quests
+     SET title = COALESCE($2, title),
+         description = COALESCE($3, description),
+         point_value = COALESCE($4, point_value),
+         status = COALESCE($5, status),
+         due_at = COALESCE($6, due_at),
+         completed_at = CASE WHEN $5 = 'completed' THEN now() ELSE completed_at END
+     WHERE id = $1
+     RETURNING id, creator_id AS "creatorId", title, description,
+               point_value AS "pointValue", status, due_at AS "dueAt"`,
+    [questId, title, description, pointValue, status, dueAt],
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function deleteQuest(questId: string): Promise<boolean> {
+  const result = await pool.query(`DELETE FROM quests WHERE id = $1`, [
+    questId,
+  ]);
   return (result.rowCount ?? 0) > 0;
 }
