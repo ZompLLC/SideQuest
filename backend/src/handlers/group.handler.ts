@@ -28,7 +28,11 @@ function generateInviteCode(): string {
 
 // POST /groups
 export async function createGroup(
-  req: Request<Record<string, never>, CreateGroupResponseModel, CreateGroupRequestModel>,
+  req: Request<
+    Record<string, never>,
+    CreateGroupResponseModel,
+    CreateGroupRequestModel
+  >,
   res: Response<CreateGroupResponseModel>,
 ): Promise<void> {
   const { name } = req.body;
@@ -64,7 +68,7 @@ export async function createGroup(
     });
     res.status(201).json(group);
   } catch (err) {
-    req.log.info("createGroup: failed to create group", { err });
+    req.log.info("createGroup: failed to create group", { err }); //TODO can possibly create group but not add to usergroup
     sendError(res, CommonErrors.internalError());
   }
 }
@@ -124,7 +128,11 @@ export async function getGroup(
 
 // PATCH /groups/:groupId
 export async function updateGroup(
-  req: Request<{ groupId: string }, UpdateGroupResponseModel, UpdateGroupRequesteModel>,
+  req: Request<
+    { groupId: string },
+    UpdateGroupResponseModel,
+    UpdateGroupRequesteModel
+  >,
   res: Response<UpdateGroupResponseModel>,
 ): Promise<void> {
   const { groupId } = req.params;
