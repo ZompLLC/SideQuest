@@ -120,9 +120,13 @@ export async function login(
     email,
   });
 
+  const accessToken = await jwt.sign({ userId: user.id }, JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
   res.status(200).json({
     message: "successfully logged in",
-    accessToken: "TODO-access-token",
+    accessToken,
     userId: user.id,
   });
 }
