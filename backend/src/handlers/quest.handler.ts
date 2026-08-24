@@ -7,6 +7,7 @@ import {
   updateQuest as dbUpdateQuest,
   deleteQuest as dbDeleteQuest,
   findGroupById,
+  assignQuestToUsersInGroup,
 } from "../../db.js";
 import { sendError } from "../errors/errors.js";
 //import { AuthErrors } from "../errors/quest.errors";
@@ -35,7 +36,6 @@ export async function createQuest(
   const userId = req.userId!;
 
   req.log.info("createQuest: request received", { groupId });
-  req.log.info("createQuest: USERID TESTESTS", { userId });
 
   const missing = requireFields(req.body, [
     "title",
@@ -72,9 +72,18 @@ export async function createQuest(
       questId,
       groupId,
     });
+    await assignQuestToUsersInGroup(questId, userId, groupId);
+    req.log.info(
+      "createQuest: quest sucessfully assigned to users in the group",
+      {
+        questId,
+        groupId,
+        userId,
+      },
+    );
     res.status(201).json(quest);
   } catch (err) {
-    req.log.info("createQuest: failed to create quest", { err, groupId });
+    req.log.info("createQuest: failed to create quest", { err, groupId }); //TODO can possibly create quest but not add to quest_assignment
     sendError(res, CommonErrors.internalError());
   }
 }

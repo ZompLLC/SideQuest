@@ -275,7 +275,9 @@ export async function deleteGroup(id: string): Promise<boolean> {
   return (result.rowCount ?? 0) > 0;
 }
 
-export async function listGroupsForUser(userId: string): Promise<GroupRecord[]> {
+export async function listGroupsForUser(
+  userId: string,
+): Promise<GroupRecord[]> {
   const result = await pool.query(
     `SELECT ${GROUP_SELECT_COLUMNS} FROM groups g
      JOIN users_groups ug ON ug.group_id = g.id
@@ -390,4 +392,21 @@ export async function deleteQuest(questId: string): Promise<boolean> {
     questId,
   ]);
   return (result.rowCount ?? 0) > 0;
+}
+
+export async function assignQuestToUsersInGroup(
+  questId: string,
+  userId: string,
+  groupId: string,
+) {
+  try {
+    const result = await pool.query(
+      `INSERT INTO quests_assignments (quest_id, group_id, user_id)
+       VALUES ($1, $2, $3)`,
+      [questId, groupId, userId],
+    );
+    return result.rows.length;
+  } catch (err) {
+    throw err;
+  }
 }
