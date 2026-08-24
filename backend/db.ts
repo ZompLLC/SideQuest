@@ -275,6 +275,17 @@ export async function deleteGroup(id: string): Promise<boolean> {
   return (result.rowCount ?? 0) > 0;
 }
 
+export async function listGroupsForUser(userId: string): Promise<GroupRecord[]> {
+  const result = await pool.query(
+    `SELECT ${GROUP_SELECT_COLUMNS} FROM groups g
+     JOIN users_groups ug ON ug.group_id = g.id
+     WHERE ug.user_id = $1
+     ORDER BY g.created_at DESC`,
+    [userId],
+  );
+  return result.rows.map(mapGroupRow);
+}
+
 // --- Quest queries ---
 
 export async function createQuest(

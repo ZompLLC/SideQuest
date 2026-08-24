@@ -34,14 +34,14 @@ export async function register(
 
   const missing = requireFields(req.body, ["email", "username", "password"]);
   if (missing) {
-    req.log.warn("register: validation failed, missing required fields");
+    req.log.info("register: validation failed, missing required fields");
     sendError(res, CommonErrors.missingField());
     return;
   }
 
   //TODO change to helper function to validate password
   if (password.length < 8) {
-    req.log.warn("register: validation failed, password too short", { email });
+    req.log.info("register: validation failed, password too short", { email });
     sendError(
       res,
       AuthErrors.weakPassword("Password needs to be 8 characters or longer."),
@@ -63,16 +63,16 @@ export async function register(
     res.status(201).json({ ...user, authToken });
   } catch (err) {
     if (err instanceof DuplicateUsernameError) {
-      req.log.warn("register: duplicate username", { username });
+      req.log.info("register: duplicate username", { username });
       sendError(res, UserErrors.usernameTaken(err.message));
       return;
     }
     if (err instanceof DuplicateUserError) {
-      req.log.warn("register: duplicate user", { email });
+      req.log.info("register: duplicate user", { email });
       sendError(res, AuthErrors.emailAlreadyExists(email));
       return;
     }
-    req.log.error("register: failed to create user", { err });
+    req.log.info("register: failed to create user", { err });
     sendError(res, CommonErrors.internalError());
   }
 }
@@ -88,7 +88,7 @@ export async function login(
 
   const missing = requireFields(req.body, ["email", "password"]);
   if (missing) {
-    req.log.warn("login: validation failed, missing required fields");
+    req.log.info("login: validation failed, missing required fields");
     sendError(res, CommonErrors.missingField());
     return;
   }
@@ -97,20 +97,20 @@ export async function login(
   try {
     user = await findUserByEmail(email);
   } catch (err) {
-    req.log.error("login: failed to look up user", { err });
+    req.log.info("login: failed to look up user", { err });
     sendError(res, CommonErrors.internalError());
     return;
   }
 
   if (!user) {
-    req.log.warn("login: failed, invalid email", { email });
+    req.log.info("login: failed, invalid email", { email });
     sendError(res, AuthErrors.invalidCredentials());
     return;
   }
 
   const passwordMatches = await bcrypt.compare(password, user.passwordHash);
   if (!passwordMatches) {
-    req.log.warn("login: failed, incorrect password", { email });
+    req.log.info("login: failed, incorrect password", { email });
     sendError(res, AuthErrors.invalidCredentials());
     return;
   }
@@ -120,9 +120,13 @@ export async function login(
     email,
   });
 
+  const accessToken = await jwt.sign({ userId: user.id }, JWT_SECRET, {
+    expiresIn: "7d",
+  });
+
   res.status(200).json({
     message: "successfully logged in",
-    accessToken: "TODO-access-token",
+    accessToken,
     userId: user.id,
   });
 }
