@@ -128,6 +128,65 @@ export async function updateUsername(
   }
 }
 
+export async function findUserCredentialsById(
+  id: string,
+): Promise<UserCredentials | undefined> {
+  const result = await pool.query(
+    `SELECT id, username, password_hash FROM users WHERE id = $1`,
+    [id],
+  );
+  const row = result.rows[0];
+  if (!row) {
+    return undefined;
+  }
+  return {
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+  };
+}
+
+export async function updatePassword(
+  id: string,
+  passwordHash: string,
+): Promise<boolean> {
+  const result = await pool.query(
+    `UPDATE users SET password_hash = $2 WHERE id = $1`,
+    [id, passwordHash],
+  );
+  return (result.rowCount ?? 0) > 0;
+}
+
+export async function updateEmail(
+  id: string,
+  email: string,
+): Promise<UserRecord | undefined> {
+  try {
+    const result = await pool.query(
+      `UPDATE users SET email = $2 WHERE id = $1
+       RETURNING id, email, username, created_at`,
+      [id, email],
+    );
+    const row = result.rows[0];
+    if (!row) {
+      return undefined;
+    }
+    return {
+      id: row.id,
+      email: row.email,
+      username: row.username,
+      createdAt: row.created_at.toISOString(),
+    };
+  } catch (err) {
+    if (err instanceof DatabaseError && err.code === "23505") {
+      throw new DuplicateUserError(
+        "An account with this email already exists.",
+      );
+    }
+    throw err;
+  }
+}
+
 export interface GroupRecord {
   id: string;
   name: string;

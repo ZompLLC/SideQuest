@@ -11,6 +11,18 @@ export type UpdateUserRequestModel = {
   username: string;
 };
 
+// Request body for PATCH /users/me/password
+export type ChangePasswordRequestModel = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+// Request body for PATCH /users/me/email
+export type ChangeEmailRequestModel = {
+  currentPassword: string;
+  newEmail: string;
+};
+
 // Response payload for GET /users/me/stats
 // NOTE: mocked -- streaks/badges/season history depend on groups, challenges,
 // and seasons tables that don't exist in the schema yet.
