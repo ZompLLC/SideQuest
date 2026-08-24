@@ -3,18 +3,21 @@ import { AuthErrorCode, AUTH_ERROR_CODES } from "./auth.errors";
 import { CommonErrorCode, COMMON_ERROR_CODES } from "./common.errors";
 import { GroupErrorCode, GROUP_ERROR_CODES } from "./group.errors";
 import { USER_ERROR_CODES, UserErrorCode } from "./user.errors";
+import { QUEST_ERROR_CODES, QuestsErrorCode } from "./quest.errors";
 
 export type ErrorCode =
   | AuthErrorCode
   | CommonErrorCode
   | GroupErrorCode
-  | UserErrorCode;
+  | UserErrorCode
+  | QuestsErrorCode;
 
 export const ALL_ERROR_CODES = [
   ...AUTH_ERROR_CODES,
   ...COMMON_ERROR_CODES,
   ...GROUP_ERROR_CODES,
   ...USER_ERROR_CODES,
+  ...QUEST_ERROR_CODES,
 ] as const;
 
 // Runtime type guard — narrows `string` to `ErrorCode`

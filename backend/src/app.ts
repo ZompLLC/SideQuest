@@ -3,6 +3,7 @@ import { logger, requestLogger } from "./util/logger.js";
 import { authRouter } from "./routes/auth.routes.js";
 import { groupRouter } from "./routes/group.routes.js";
 import { userRouter } from "./routes/user.routes.js";
+import { questRouter } from "./routes/quest.route.js";
 
 export const app = express();
 
@@ -17,3 +18,4 @@ app.get("/status", (req: Request, res: Response) => {
 app.use(authRouter);
 app.use(groupRouter);
 app.use(userRouter);
+app.use(questRouter);
