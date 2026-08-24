@@ -8,11 +8,17 @@ import GroupsScreen from "../screens/groups/GroupsScreen";
 import GroupDetailScreen from "../screens/groups/GroupDetailScreen";
 import ChallengeDetailScreen from "../screens/challenges/ChallengeDetailScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
+import EditProfileScreen from "../screens/profile/EditProfileScreen";
 import { colors } from "../theme";
-import { MainTabParamList, GroupsStackParamList } from "../types";
+import {
+  MainTabParamList,
+  GroupsStackParamList,
+  ProfileStackParamList,
+} from "../types";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const GroupsStack = createNativeStackNavigator<GroupsStackParamList>();
+const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 
 const ICONS: Record<keyof MainTabParamList, keyof typeof Ionicons.glyphMap> = {
   Home: "home",
@@ -48,6 +54,30 @@ function GroupsStackNavigator() {
   );
 }
 
+// Profile gets its own stack so Edit Profile pushes as a separate page
+// while still living under a single "Profile" tab.
+function ProfileStackNavigator() {
+  return (
+    <ProfileStack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.surface },
+        headerTitleStyle: { color: colors.text },
+      }}
+    >
+      <ProfileStack.Screen
+        name="ProfileHome"
+        component={ProfileScreen}
+        options={{ title: "Profile" }}
+      />
+      <ProfileStack.Screen
+        name="EditProfile"
+        component={EditProfileScreen}
+        options={{ title: "Edit Profile" }}
+      />
+    </ProfileStack.Navigator>
+  );
+}
+
 export default function MainTabNavigator() {
   return (
     <Tab.Navigator
@@ -75,7 +105,11 @@ export default function MainTabNavigator() {
         component={GroupsStackNavigator}
         options={{ headerShown: false }}
       />
-      <Tab.Screen name="Profile" component={ProfileScreen} />
+      <Tab.Screen
+        name="Profile"
+        component={ProfileStackNavigator}
+        options={{ headerShown: false }}
+      />
     </Tab.Navigator>
   );
 }

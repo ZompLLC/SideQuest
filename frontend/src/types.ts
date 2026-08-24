@@ -63,3 +63,8 @@ export type GroupsStackParamList = {
   GroupDetail: { id: string; openChallengeId?: string };
   ChallengeDetail: { id: string };
 };
+
+export type ProfileStackParamList = {
+  ProfileHome: undefined;
+  EditProfile: undefined;
+};
