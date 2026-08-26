@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "tsx watch server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
-    "migrate": "dotenv -e .env -- node-pg-migrate",
+    "prod": "npm run build && node dist/server.js",
+    "migrate": "dotenv -e .env -- node-pg-migrate up",
     "lint": "eslint .",
-    "pretest": "dotenv -e .env -- node-pg-migrate up",
+    "pretest": "npm run migrate",
     "test": "dotenv -e .env -- jest"
   },
   "dependencies": {
@@ -19,6 +19,7 @@
     "express-winston": "^4.2.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",
+    "sidequest-scripts": "file:..",
     "winston": "^3.19.0"
   },
   "devDependencies": {

@@ -39,10 +39,9 @@ jobs:
           cat <<EOF > .env
           DATABASE_HOST=localhost
           DATABASE_PORT=5432
-          DATABASE_NAME=sidequest_test
+          DATABASE_NAME=sidequest_db
           DATABASE_USER=postgres
           DATABASE_PASSWORD=postgres
-          DATABASE_URL=postgresql://postgres:postgres@localhost:5432/sidequest_test
           JWT_SECRET_TOKEN=ci-test-secret
           LOG_LEVEL=error
           EOF

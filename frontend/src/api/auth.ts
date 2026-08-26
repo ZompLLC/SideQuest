@@ -1,7 +1,7 @@
 import { User } from "../types";
 import { getUser } from "./user";
 
-const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL;
+const SERVER_URL = `${process.env.EXPO_PUBLIC_BACKEND_HOST}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`;
 
 export async function login(
   email: string,

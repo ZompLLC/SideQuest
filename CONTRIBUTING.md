@@ -150,10 +150,7 @@ DATABASE_PORT=5432
 DATABASE_NAME=<your database name>
 DATABASE_USER=<your postgres user>
 DATABASE_PASSWORD=<your postgres password, blank if none>
-DATABASE_URL=postgresql://<user>:<password>@localhost:5432/<database name>
 ```
-
-(leave out the `:<password>` part of `DATABASE_URL` entirely if you don't have one set, e.g. `postgresql://<user>@localhost:5432/<database name>` — this is the common case on Mac with Postgres.app/Homebrew, but Windows installs typically do have a password)
 
 Run the database migrations to create the schema (this only needs to be re-run when new migrations are added):
 
