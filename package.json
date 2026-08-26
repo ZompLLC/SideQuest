@@ -4,6 +4,7 @@
   "scripts": {
     "=== MISCELLANEOUS HELPERS ===": "",
     "tests": "npm run test --prefix backend && npm run test --prefix frontend",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
     "=== RUNNING APP LOCALLY ===": "",
     "install:all": "npm install --prefix backend && npm install --prefix frontend",
     "backend": "npm run dev --prefix backend",
@@ -19,5 +20,8 @@
     "attach:backend": "docker attach sidequest-backend-1",
     "attach:frontend": "docker attach sidequest-frontend-1",
     "inject": "docker exec -t 341ceea23869 psql -U postgres -d postgres -c "
+  },
+  "dependencies": {
+    "eslint": "^10.9.1"
   }
 }

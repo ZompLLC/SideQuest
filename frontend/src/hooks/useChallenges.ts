@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getChallenges } from '../api/challenges';
-import { Challenge } from '../types';
+import { useState, useEffect, useCallback } from "react";
+import { getChallenges } from "../api/challenges";
+import { Challenge } from "../types";
 
 interface UseChallengesResult {
   challenges: Challenge[];
@@ -18,7 +18,6 @@ export function useChallenges(): UseChallengesResult {
   useEffect(() => {
     let ignore = false;
     // Resets the loading flag for each new fetch (initial mount and refetch).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     getChallenges()
       .then((data) => {
