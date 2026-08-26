@@ -2,6 +2,8 @@
   "name": "sidequest-scripts",
   "private": true,
   "scripts": {
+    "=== MISCELLANEOUS HELPERS ===": "",
+    "tests": "npm run test --prefix backend && npm run test --prefix frontend",
     "=== RUNNING APP LOCALLY ===": "",
     "install:all": "npm install --prefix backend && npm install --prefix frontend",
     "backend": "npm run dev --prefix backend",
