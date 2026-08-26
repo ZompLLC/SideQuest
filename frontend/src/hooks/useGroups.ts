@@ -31,7 +31,6 @@ export function useGroups(): UseGroupsResult {
 
   useEffect(() => {
     let ignore = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
 
     // Mock groups always load, independent of auth/backend state, so a
@@ -89,5 +88,13 @@ export function useGroups(): UseGroupsResult {
     }
   }
 
-  return { groups, loading, error, refetch, createGroup, creating, createError };
+  return {
+    groups,
+    loading,
+    error,
+    refetch,
+    createGroup,
+    creating,
+    createError,
+  };
 }

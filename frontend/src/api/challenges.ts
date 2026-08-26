@@ -132,6 +132,13 @@ export async function createChallenge(
   */
 }
 
+type TaskItem = {
+  id: string;
+  creatorId: string;
+  title: string;
+  pointValue: number;
+};
+
 // GET /groups/:groupId/quests only returns partial records (id, creatorId,
 // title, pointValue -- see ListQuestsResponseModel on the backend), so the
 // fields it doesn't carry (status, description, dueAt, opponent) are filled
@@ -140,12 +147,7 @@ export async function getChallengesByGroup(
   groupId: string,
 ): Promise<Challenge[]> {
   const res = await fetch(`http://${SERVER_URL}/groups/${groupId}/quests`);
-  const quests: Array<{
-    id: string;
-    creatorId: string;
-    title: string;
-    pointValue: number;
-  }> = await res.json();
+  const quests: TaskItem[] = await res.json();
   if (!res.ok)
     throw new Error("Failed to load challenges for group " + groupId);
 
