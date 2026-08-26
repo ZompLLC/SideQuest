@@ -26,6 +26,7 @@ export function useChallenges(): UseChallengesResult {
 
     let ignore = false;
     // Resets the loading flag for each new fetch (initial mount and refetch).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     getChallenges(token)
       .then((data) => {
