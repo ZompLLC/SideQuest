@@ -1,6 +1,6 @@
 import { Group } from "../types";
 
-const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL;
+const SERVER_URL = `${process.env.EXPO_PUBLIC_BACKEND_HOST}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`;
 
 // Dummy data standing in for what apps/backend will eventually return.
 // Function signatures/types here are the "contract" — hooks/screens

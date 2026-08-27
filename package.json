@@ -1,0 +1,27 @@
+{
+  "name": "sidequest-scripts",
+  "private": true,
+  "scripts": {
+    "=== MISCELLANEOUS HELPERS ===": "",
+    "tests": "npm run test --prefix backend && npm run test --prefix frontend",
+    "lint": "npm run lint --prefix backend && npm run lint --prefix frontend",
+    "=== RUNNING APP LOCALLY ===": "",
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "backend": "npm run dev --prefix backend",
+    "frontend": "cd frontend && npx expo start",
+    "sidequest": "concurrently --raw -n backend,frontend -c blue,green \"npm run backend\" \"npm run frontend\"",
+    "showcase": "npm run install:all && npm run showcase",
+    "=== RUNNING APP ON DOCKER ===": "",
+    "build": "docker compose --env-file ./backend/.env --env-file ./frontend/.env build",
+    "up": "docker compose --env-file ./backend/.env --env-file ./frontend/.env up --build",
+    "down": "docker compose --env-file ./backend/.env --env-file ./frontend/.env down",
+    "ps": "docker compose --env-file ./backend/.env --env-file ./frontend/.env ps",
+    "logs": "docker compose --env-file ./backend/.env --env-file ./frontend/.env logs -f",
+    "attach:backend": "docker attach sidequest-backend-1",
+    "attach:frontend": "docker attach sidequest-frontend-1",
+    "inject": "docker exec -t 341ceea23869 psql -U postgres -d postgres -c "
+  },
+  "dependencies": {
+    "eslint": "^10.9.1"
+  }
+}

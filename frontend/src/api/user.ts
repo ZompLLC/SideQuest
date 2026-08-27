@@ -1,6 +1,6 @@
 import { User, UserStats } from "../types";
 
-const SERVER_URL = process.env.EXPO_PUBLIC_SERVER_URL;
+const SERVER_URL = `${process.env.EXPO_PUBLIC_BACKEND_HOST}:${process.env.EXPO_PUBLIC_BACKEND_PORT}`;
 
 export async function getUser(userId: string): Promise<User> {
   const res = await fetch(`http://${SERVER_URL}/users/${userId}`);
