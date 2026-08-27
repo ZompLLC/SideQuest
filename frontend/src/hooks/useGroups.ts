@@ -89,5 +89,13 @@ export function useGroups(): UseGroupsResult {
     }
   }
 
-  return { groups, loading, error, refetch, createGroup, creating, createError };
+  return {
+    groups,
+    loading,
+    error,
+    refetch,
+    createGroup,
+    creating,
+    createError,
+  };
 }
