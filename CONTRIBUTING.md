@@ -1,72 +1,73 @@
 # Contributing
 
-Thanks for helping improve zomp-zomp-zomp! This guide covers setting up your dev environment and the workflow for submitting changes.
+Thanks for helping to improve SideQuest! This guide covers setting up your dev environment and the workflow for submitting changes.
 
 ## Table of Contents
 
-1. [Prerequisites](#prerequisites)
-   - [Downloads](#downloads)
-   - [Project Setup](#project-setup)
-     - [Running on iOS Simulator](#running-on-the-ios-simulator-mac--xcode-26)
-   - [Backend Setup](#backend-setup)
-     - [Setting Up Postgres Locally](#setting-up-postgres-locally)
-     - [Running the Backend Server](#running-the-backend-server)
-2. [Contribution Workflow](#contribution-workflow)
+1. [Downloads](#downloads)
+2. [Setup](#setup)
+3. [Running the App](#running-the-app)
+   - [Run Locally](#run-locally)
+   - [Run with Docker](#run-with-docker)
+   - [Helpful Commands](#helpful-commands)
+4. [Contribution Workflow](#contribution-workflow)
    - [Pushing Changes](#pushing-changes)
-   - [Open Pull Request](#open-a-pull-request)
+   - [Open a Pull Request](#open-a-pull-request)
+   - [Cleaning Up](#cleaning-up)
 
-## Prerequisites
+## Downloads
 
-### Downloads
+- [Node.js](https://nodejs.org/) v20.0.0 or up
+- [Expo Go](https://expo.dev/go) v54.0.0 (App Store) — or an iOS Simulator / Android Emulator
+- [Postgres](#setting-up-postgres) / [Docker](https://www.docker.com/products/docker-desktop/) — for running the backend locally or in a container
+- [Postman](https://www.postman.com/downloads/) — or any other platform to test APIs
 
-- [Node.js](https://nodejs.org/) at least version 20.0.0
-- [Expo Go](https://expo.dev/go) installed on your phone (or an iOS Simulator / Android Emulator)
+## Setup
 
-### Project Setup
+### Depedencies
 
-[FINISH SETUP ONCE WE GET FULLY OPERATIONAL FRONTEND AND BACKEND]
+Run `npm run install:all` in the main directory to download dependencies for both the backend and frontend.
 
-Install dependencies:
+### Environment Files
 
-```
-cd frontend
-npm install
-```
+Copy the example .env files for both the backend and frontend and fill in your connection details.
 
-Start the expo server:
-
-```
-npx expo start
+```bash
+cp .env.example .env
 ```
 
-Scan the QR code with Expo Go, or press `i` / `a` / `w` to open the iOS simulator, Android emulator, or web.
+(on Windows Command Prompt, use `copy .env.example .env` instead — `cp` works as-is in PowerShell, WSL, or Git Bash)
 
-### Running on iOS Simulator (Mac + Xcode 26)
+### iOS Simulator Setup (Mac Only)
 
 1. Install Xcode from the App Store (Xcode 26 or later), open it once, and let it finish installing components.
-2. Make sure the command line tools point at it:
-   ```
+2. Point the command line tools at it:
+   ```bash
    sudo xcode-select -s /Applications/Xcode.app
    ```
 3. Open Xcode → **Settings → Platforms** and install an iOS Simulator runtime if none is listed.
 4. From the project folder:
 
-   ```
-   npm install
-   npx expo start
+   ```bash
+   npm run install:all
+   npm run sidequest
    ```
 
    then press `i`. Expo will download the Expo Go client into the simulator on first run and launch the app automatically.
 
    Equivalently, `npm run ios` does the same thing directly.
 
-### Backend Setup
+   **[TODO (needs verifying from an iOS simulator user): pressing `i` may not work with `npm run sidequest` since it hijacks keyboard input — may need a dedicated `ios` script in the root package.json instead.]**
 
-The backend lives in `backend/` and talks to a local Postgres database, so that needs to be running before you start the server.
+## Running the App
 
-#### Setting Up Postgres Locally
+### Run Locally
 
-Pick whichever you're most comfortable with:
+Postgres (pgAdmin 4) needs to be running before you run the app locally.
+
+#### Setting Up Postgres
+
+Pick whichever you're most comfortable with. If you don't have a password (common case on Mac with Postgres.app/Homebrew), leave `DATABASE_PASSWORD` blank and remove the `:<DATABASE_PASSWORD>` part of `DATABASE_URL` in your env files.
 
 **Mac**
 
@@ -111,14 +112,6 @@ Pick whichever you're most comfortable with:
   sudo service postgresql start
   ```
 
-**Any OS — Docker**
-
-- If you'd rather not install Postgres directly on your machine (works the same on Mac, Windows, and Linux — requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) on Mac/Windows):
-
-  ```bash
-  docker run --name sidequest-postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:16
-  ```
-
 Once your server is running, create a database for the project (skip this if you're using Postgres.app's default database, which is named after your username):
 
 ```bash
@@ -127,53 +120,44 @@ createdb sidequest
 
 (on Windows with the native installer, run this from a terminal where `psql`'s `bin` directory is on `PATH`, or use pgAdmin's GUI to create a database instead)
 
-#### Running the Backend Server
-
-Install dependencies:
-
-```bash
-cd backend
-npm install
-```
-
-Copy the example environment file and fill in your local Postgres connection details:
-
-```bash
-cp .env.development.example .env.development
-```
-
-(on Windows Command Prompt, use `copy .env.development.example .env.development` instead — `cp` works as-is in PowerShell, WSL, or Git Bash)
-
-```
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_NAME=<your database name>
-DATABASE_USER=<your postgres user>
-DATABASE_PASSWORD=<your postgres password, blank if none>
-DATABASE_URL=postgresql://<user>:<password>@localhost:5432/<database name>
-```
-
-(leave out the `:<password>` part of `DATABASE_URL` entirely if you don't have one set, e.g. `postgresql://<user>@localhost:5432/<database name>` — this is the common case on Mac with Postgres.app/Homebrew, but Windows installs typically do have a password)
+#### Running the App
 
 Run the database migrations to create the schema (this only needs to be re-run when new migrations are added):
 
 ```bash
-npm run migrate -- up
+npm run migrate
 ```
 
-Start the dev server:
+Then start whichever piece you need:
 
-```bash
-npm run dev
-```
+| Command             | Description                              |
+| ------------------- | ---------------------------------------- |
+| `npm run backend`   | Starts the backend API server only       |
+| `npm run frontend`  | Starts the Expo dev server only          |
+| `npm run sidequest` | Starts the backend and frontend together |
 
-You should see `Server listening at http://localhost:3000`. Verify it's up:
+### Run with Docker
 
-```bash
-curl http://localhost:3000/status
-```
+The project can be run fully containerized using Docker Compose, orchestrated through npm scripts defined in the root `package.json`. Ensure that Docker Desktop is installed and running.
 
-If the server fails to start with a database connection error, double check your `.env.development` values match your local Postgres setup and that the server is actually running (`pg_isready`).
+**Commands**
+
+| Command                   | Description                                                           |
+| ------------------------- | --------------------------------------------------------------------- |
+| `npm run up`              | Builds (if needed) and starts all services in the foreground          |
+| `npm run down`            | Stops and removes all running containers                              |
+| `npm run attach:backend`  | Attaches to the running backend container's shell/logs for debugging  |
+| `npm run attach:frontend` | Attaches to the running frontend container's shell/logs for debugging |
+
+### Helpful Commands
+
+Commands below work whether you're running locally or with Docker, unless noted.
+
+| Command           | Description                               |
+| ----------------- | ----------------------------------------- |
+| `npm run migrate` | Applies pending database migrations       |
+| `npm run test`    | Runs unit and integration tests           |
+| `npm run lint`    | Runs linter for both backend and frontend |
 
 ## Contribution Workflow
 
@@ -186,7 +170,7 @@ git checkout main
 git pull origin main
 ```
 
-Create a feature branch off `main` for your change.
+Create a feature branch off `main` for your change:
 
 ```bash
 git checkout -b feature/short-description
@@ -206,15 +190,18 @@ git add .
 git commit -m "Add short, descriptive summary of the change"
 ```
 
-Push your branch to the remote repository.
-
-- If it's the first push of this branch, Git may show a suggested command with `-u` — use it so future pushes are simpler:
-- If new changes have been added to 'main' since you started your feature branh, you will need to _rebaes_ your changes. (you may have to resolve merge conflicts).
+Push your branch to the remote repository:
 
 ```bash
-git pull --rebase origin main
 git push origin feature/short-description
 ```
+
+- If it's the first push of this branch, Git will show a suggested command with `-u` in the output — use that instead so future pushes are simpler (`git push -u origin feature/short-description`).
+- If new commits have landed on `main` since you started your feature branch, rebase before pushing so your branch stays current:
+  ```bash
+  git pull --rebase origin main
+  ```
+  You may need to resolve merge conflicts during the rebase.
 
 ### Open a Pull Request
 
@@ -229,7 +216,7 @@ git push origin feature/short-description
 
 ### Cleaning Up
 
-After the pull request is merged into main, clean up your changes and delete your local branch.
+After the pull request is merged into main, clean up your changes and delete your local branch:
 
 ```bash
 git checkout main
