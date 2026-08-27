@@ -6,7 +6,6 @@ web-build/
 .DS_Store
 ios/
 android/
-scripts/
 .vscode/
 
 .env
