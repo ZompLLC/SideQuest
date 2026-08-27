@@ -7,6 +7,7 @@ import HomeScreen from "../screens/home/HomeScreen";
 import GroupsScreen from "../screens/groups/GroupsScreen";
 import GroupDetailScreen from "../screens/groups/GroupDetailScreen";
 import ChallengeDetailScreen from "../screens/challenges/ChallengeDetailScreen";
+import CreateChallengeScreen from "../screens/challenges/CreateChallengeScreen";
 import ProfileScreen from "../screens/profile/ProfileScreen";
 import EditProfileScreen from "../screens/profile/EditProfileScreen";
 import { colors } from "../theme";
@@ -49,6 +50,11 @@ function GroupsStackNavigator() {
         name="ChallengeDetail"
         component={ChallengeDetailScreen}
         options={{ title: "Challenge" }}
+      />
+      <GroupsStack.Screen
+        name="CreateChallenge"
+        component={CreateChallengeScreen}
+        options={{ title: "Create" }}
       />
     </GroupsStack.Navigator>
   );

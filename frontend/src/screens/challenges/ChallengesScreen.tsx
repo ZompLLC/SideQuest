@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, FlatList, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing } from '../../theme';
 import { useChallenges } from '../../hooks/useChallenges';
 import ChallengeCard from '../../components/ChallengeCard';
@@ -11,7 +12,13 @@ import { ChallengesStackParamList } from '../../types';
 type Props = NativeStackScreenProps<ChallengesStackParamList, 'ChallengesList'>;
 
 export default function ChallengesScreen({ navigation }: Props) {
-  const { challenges, loading } = useChallenges();
+  const { challenges, loading, refetch } = useChallenges();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   return (
     <SafeAreaView style={styles.container}>
